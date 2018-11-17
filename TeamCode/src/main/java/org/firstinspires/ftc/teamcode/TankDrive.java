@@ -103,7 +103,7 @@ public class TankDrive extends OpMode
         ex = hardwareMap.get(CRServo.class, "ex");
         dr = hardwareMap.get(Servo.class, "dr");
 
-        coll = hardwareMap.get(DcMotor.class, "coll");
+        //coll = hardwareMap.get(DcMotor.class, "coll");
     }
 
     /*
@@ -141,21 +141,25 @@ public class TankDrive extends OpMode
         for (DcMotor d : right)
             d.setPower(rightPower);*/
 
+        //ex.setPower(0.5);
+
+        if(gamepad1.x)
+            ex.setPower(0.1);
+        else if(gamepad1.y)
+            ex.setPower(-1.0);
+        else
+            ex.setPower(0.2);
 
 
-        if(gamepad1.a)
-            ex.setPower(.25);
-        else if(gamepad1.b)
-            ex.setPower(-.25);
-        else if(gamepad1.x)
+        /*if(gamepad1.x)
             ex.setPower(1);
         else if(gamepad1.y)
             ex.setPower(-1);
         else
-            ex.setPower(0);
+            ex.setPower(0);*/
 
         if(gamepad1.right_bumper)
-            dr.setPosition(0.0);
+            dr.setPosition(0.4);
         if(gamepad1.left_bumper)
             dr.setPosition(1.0);
 
