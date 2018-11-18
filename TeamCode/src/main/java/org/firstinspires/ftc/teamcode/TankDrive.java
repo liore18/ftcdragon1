@@ -52,9 +52,8 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Iterative OpMode", group="Iterative Opmode")
-public class TankDrive extends OpMode
-{
+@TeleOp(name="Tank Drive", group="TeleOp")
+public class TankDrive extends OpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -81,17 +80,12 @@ public class TankDrive extends OpMode
      */
     @Override
     public void init() {
-        telemetry.addData("Status", "Initialized");
 
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
-        left = new DcMotor[2];
-        left[0] = hardwareMap.get(DcMotor.class, "lf");
-        left[1] = hardwareMap.get(DcMotor.class, "lb");
-        right = new DcMotor[2];
-        right[0] = hardwareMap.get(DcMotor.class, "rf");
-        right[1] = hardwareMap.get(DcMotor.class, "rb");
+        left[0] = hardwareMap.get(DcMotor.class, "lf");         // the
+        left[1] = hardwareMap.get(DcMotor.class, "lb");         // four
+                                                                           // motors
+        right[0] = hardwareMap.get(DcMotor.class, "rf");        // go into
+        right[1] = hardwareMap.get(DcMotor.class, "rb");        // two arrays
 
         for(DcMotor d : left)
             d.setDirection(DcMotor.Direction.REVERSE);
@@ -99,31 +93,23 @@ public class TankDrive extends OpMode
             d.setDirection(DcMotor.Direction.FORWARD);
 
         // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
-        ex = hardwareMap.get(CRServo.class, "ex");
-        dr = hardwareMap.get(Servo.class, "dr");
+        ex = hardwareMap.get(CRServo.class, "ex");              // extend marker
+        dr = hardwareMap.get(Servo.class, "dr");                // drop marker
 
-        //coll = hardwareMap.get(DcMotor.class, "coll");
+        //coll = hardwareMap.get(DcMotor.class, "coll");                   // collection motor
+
+        telemetry.addData("Status", "Let's roll.");          // tell the driver we're all set
     }
 
-    /*
-     * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
-     */
     @Override
     public void init_loop() {
     }
 
-    /*
-     * Code to run ONCE when the driver hits PLAY
-     */
     @Override
     public void start() {
         runtime.reset();
     }
 
-    /*
-     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
-     */
     @Override
     public void loop() {
         // Setup a variable for each drive wheel to save power level for telemetry
@@ -150,14 +136,6 @@ public class TankDrive extends OpMode
         else
             ex.setPower(0.2);
 
-
-        /*if(gamepad1.x)
-            ex.setPower(1);
-        else if(gamepad1.y)
-            ex.setPower(-1);
-        else
-            ex.setPower(0);*/
-
         if(gamepad1.right_bumper)
             dr.setPosition(0.4);
         if(gamepad1.left_bumper)
@@ -169,9 +147,6 @@ public class TankDrive extends OpMode
         telemetry.update();
     }
 
-    /*
-     * Code to run ONCE after the driver hits STOP
-     */
     @Override
     public void stop() {
     }
