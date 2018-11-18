@@ -49,6 +49,11 @@ public class Auto extends LinearOpMode {
 
         telemetry.addData("Status", "Nominal");
         telemetry.update();
+
+        //          PUT ALL THE CODE HERE
+        //  use drive(power, distance) to move forward or backward (distance is in field tiles)
+        //  use pivot(angle) to turn while stopped
+        //
     }
 
     private void reset() {
@@ -95,11 +100,11 @@ public class Auto extends LinearOpMode {
         halt();
     }
 
-    public void drive(double pwr, double distance, double arc) {
+    public void drive(double pwr, double distance, double arc) {    // NOT IMPLEMENTED
 
     }
 
     public void pivot(double angle) {
 
-    }
+    }       // NOT IMPLEMENTED
 }
