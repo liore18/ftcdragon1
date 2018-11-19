@@ -14,8 +14,11 @@ public class Auto extends LinearOpMode {
     // constants to help calculate how far we're moving
 
     static final double TICKS_PER_ROTATION = 1440.0;
-    static final double WHEEL_DIAMETER = 4.0 ; // centimetres, because clearly they're superior
-    static final double TICKS_PER_TILE = (TICKS_PER_ROTATION * 60.96) / (WHEEL_DIAMETER * 3.1415);
+    static final double WHEEL_DIAMETER = 3.543;  // bad units
+
+    static final double TICKS_PER_INCH = (TICKS_PER_ROTATION) / (WHEEL_DIAMETER * Math.PI);
+    static final double TICKS_PER_TILE = TICKS_PER_INCH * 24;
+    static final double WHEEL_SPAN = 10.86614; // bad units
 
     // variables.
 
@@ -51,9 +54,13 @@ public class Auto extends LinearOpMode {
         telemetry.update();
 
         //          PUT ALL THE CODE HERE
-        //  use drive(power, distance) to move forward or backward (distance is in field tiles)
-        //  use pivot(angle) to turn while stopped
+        //  use drive(distance, power) to move forward or backward (distance is in field tiles)
+        //  use pivot(angle, power) to turn while stopped
         //
+
+        drive(0.5, 0.4);
+        pivot(90, 0.3);
+        halt();
     }
 
     private void reset() {
@@ -80,9 +87,12 @@ public class Auto extends LinearOpMode {
         }
     }
 
-    public void drive(double pwr, double distance) {
+    public void drive(double distance, double pwr) {
         reset();
         int target = (int)(distance * TICKS_PER_TILE);
+
+        pwr = Math.abs(pwr);
+
         if(target < 0)
             pwr = -pwr;
         for(DcMotor d : left) {
@@ -104,7 +114,27 @@ public class Auto extends LinearOpMode {
 
     }
 
-    public void pivot(double angle) {
+    public void pivot(double angle, double pwr) {
+        reset();
+        double distance = Math.PI * WHEEL_SPAN * angle / 360;
+        int target = (int)(distance * TICKS_PER_INCH);
+        pwr = Math.abs(pwr);
 
-    }       // NOT IMPLEMENTED
+        if(target < 0)
+            pwr = -pwr;
+
+        for(DcMotor d : left) {
+            d.setTargetPosition(target);
+            d.setPower(pwr);
+        }
+        for(DcMotor d : right) {
+            d.setTargetPosition(-target);
+            d.setPower(-pwr);
+        }
+
+        while (opModeIsActive() && left[0].isBusy()) {
+
+        }
+        halt();
+    }
 }
