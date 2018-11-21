@@ -80,12 +80,14 @@ public class TankDrive extends OpMode {
      */
     @Override
     public void init() {
-
+        left = new DcMotor[2];
         left[0] = hardwareMap.get(DcMotor.class, "lf");         // the
         left[1] = hardwareMap.get(DcMotor.class, "lb");         // four
-                                                                           // motors
+
+
+        right = new DcMotor[2];                                             // motors
         right[0] = hardwareMap.get(DcMotor.class, "rf");        // go into
-        right[1] = hardwareMap.get(DcMotor.class, "rb");        // two arrays
+        right[1] = hardwareMap.get(DcMotor.class, "rb");        // two array
 
         for(DcMotor d : left)
             d.setDirection(DcMotor.Direction.REVERSE);

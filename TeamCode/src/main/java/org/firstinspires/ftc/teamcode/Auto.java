@@ -44,13 +44,23 @@ public class Auto extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        telemetry.addData("Status", "will now init");
+        telemetry.update();
+
+        initialize();
+
+        telemetry.addData("Status", "will now reset");
+        telemetry.update();
 
         reset();
+
+        telemetry.addData("Status", "Nominal");
+        telemetry.update();
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        telemetry.addData("Status", "Nominal");
+        telemetry.addData("Status", "Ready to drive");
         telemetry.update();
 
         //          PUT ALL THE CODE HERE
@@ -58,33 +68,72 @@ public class Auto extends LinearOpMode {
         //  use pivot(angle, power) to turn while stopped
         //
 
-        drive(0.5, 0.4);
-        pivot(90, 0.3);
+
+
+        rf.setPower(0.2);
+        rf.setTargetPosition(100000);
+
+        rb.setPower(0.2);
+        rb.setTargetPosition(100000);
+
+        lf.setPower(0.2);
+        lf.setTargetPosition(100000);
+
+        lb.setPower(0.2);
+        lb.setTargetPosition(100000);
+
+        while (opModeIsActive() && rf.isBusy()) {
+            telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());
+
+            telemetry.addData("rfpow", rf.getPower());
+            telemetry.addData("rbpow", rb.getPower());
+            telemetry.addData("lfpow", lf.getPower());
+            telemetry.addData("lbpow", lb.getPower());
+            telemetry.update();
+        }
+        //drive(0.5, 0.01);
+
+        //pivot(90, 0.3);
         halt();
     }
 
+    public void initialize() {
+        rf = hardwareMap.get(DcMotor.class, "rf");         // the
+        rb = hardwareMap.get(DcMotor.class, "rb");         // four
+        lf = hardwareMap.get(DcMotor.class, "lf");        // go into
+        lb = hardwareMap.get(DcMotor.class, "lb");        // two arrays
+
+        rf.setDirection(DcMotor.Direction.FORWARD);
+        rb.setDirection(DcMotor.Direction.FORWARD);
+        lf.setDirection(DcMotor.Direction.REVERSE);
+        lb.setDirection(DcMotor.Direction.REVERSE);
+
+
+        // Tell the driver that initialization is complete.
+        ex = hardwareMap.get(CRServo.class, "ex");              // extend marker
+        dr = hardwareMap.get(Servo.class, "dr");                // drop marker
+    }
+
     private void reset() {
-        for(DcMotor d : left) {
-            d.setDirection(DcMotor.Direction.REVERSE);
-            d.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            d.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            d.setPower(0);
-        }
-        for(DcMotor d : right) {
-            d.setDirection(DcMotor.Direction.FORWARD);
-            d.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            d.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            d.setPower(0);
-        }
+        rf.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lf.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        rf.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rb.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        lf.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        lb.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     private void halt() {
-        for(DcMotor d : left) {
-            d.setPower(0);
-        }
-        for(DcMotor d : right) {
-            d.setPower(0);
-        }
+        rf.setPower(0);
+        rb.setPower(0);
+        lf.setPower(0);
+        lb.setPower(0);
     }
 
     public void drive(double distance, double pwr) {
@@ -105,7 +154,8 @@ public class Auto extends LinearOpMode {
         }
 
         while (opModeIsActive() && left[0].isBusy()) {
-
+            telemetry.addData("position", left[0].getCurrentPosition());
+            telemetry.update();
         }
         halt();
     }
