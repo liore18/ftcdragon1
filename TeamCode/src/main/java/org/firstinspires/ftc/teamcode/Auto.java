@@ -13,7 +13,7 @@ public class Auto extends LinearOpMode {
 
     // constants to help calculate how far we're moving
 
-    static final double TICKS_PER_ROTATION = 1440.0;
+    static final double TICKS_PER_ROTATION = 2240.0 / 2;
     static final double WHEEL_DIAMETER = 3.543;  // bad units
 
     static final double TICKS_PER_INCH = (TICKS_PER_ROTATION) / (WHEEL_DIAMETER * Math.PI);
@@ -44,13 +44,8 @@ public class Auto extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        telemetry.addData("Status", "will now init");
-        telemetry.update();
 
         initialize();
-
-        telemetry.addData("Status", "will now reset");
-        telemetry.update();
 
         reset();
 
@@ -60,7 +55,7 @@ public class Auto extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
-        telemetry.addData("Status", "Ready to drive");
+        telemetry.addData("Status", "Driving");
         telemetry.update();
 
         //          PUT ALL THE CODE HERE
@@ -69,34 +64,13 @@ public class Auto extends LinearOpMode {
         //
 
 
-
-        rf.setPower(0.2);
-        rf.setTargetPosition(100000);
-
-        rb.setPower(0.2);
-        rb.setTargetPosition(100000);
-
-        lf.setPower(0.2);
-        lf.setTargetPosition(100000);
-
-        lb.setPower(0.2);
-        lb.setTargetPosition(100000);
-
-        while (opModeIsActive() && rf.isBusy()) {
-            telemetry.addData("rfpos", rf.getCurrentPosition());
-            telemetry.addData("rbpos", rb.getCurrentPosition());
-            telemetry.addData("lfpos", lf.getCurrentPosition());
-            telemetry.addData("lbpos", lb.getCurrentPosition());
-
-            telemetry.addData("rfpow", rf.getPower());
-            telemetry.addData("rbpow", rb.getPower());
-            telemetry.addData("lfpow", lf.getPower());
-            telemetry.addData("lbpow", lb.getPower());
-            telemetry.update();
-        }
-        //drive(0.5, 0.01);
-
-        //pivot(90, 0.3);
+        drive(1, 0.1);
+        drive(-1, 1);
+        pivot(90, 0.2);
+        pivot(-90, 1);
+        drive(1, 0.1, 90);
+        drive(-1, 1, 90);
+        dropmarker();
         halt();
     }
 
@@ -142,49 +116,101 @@ public class Auto extends LinearOpMode {
 
         pwr = Math.abs(pwr);
 
-        if(target < 0)
-            pwr = -pwr;
-        for(DcMotor d : left) {
-            d.setTargetPosition(target);
-            d.setPower(pwr);
-        }
-        for(DcMotor d : right) {
-            d.setTargetPosition(target);
-            d.setPower(pwr);
-        }
+        rf.setTargetPosition(target);
+        rb.setTargetPosition(target);
+        lf.setTargetPosition(target);
+        lb.setTargetPosition(target);
+        rf.setPower(pwr);
+        rb.setPower(pwr);
+        lf.setPower(pwr);
+        lb.setPower(pwr);
 
-        while (opModeIsActive() && left[0].isBusy()) {
-            telemetry.addData("position", left[0].getCurrentPosition());
+        while (opModeIsActive() && rf.isBusy()) {
+            telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());
+
+            telemetry.addData("rfpow", rf.getPower());
+            telemetry.addData("rbpow", rb.getPower());
+            telemetry.addData("lfpow", lf.getPower());
+            telemetry.addData("lbpow", lb.getPower());
+            telemetry.update();
+        }
+        reset();
+        halt();
+    }
+
+    public void drive(double pwr, double distance, double arc) {    // NOT IMPLEMENTED
+        reset();
+        double arclength = Math.PI * WHEEL_SPAN * arc / 180;
+
+        int targetturn = (int)(arclength * TICKS_PER_INCH);
+
+        int targetdrive = (int)(distance * TICKS_PER_TILE);
+        pwr = Math.abs(pwr);
+
+        rf.setTargetPosition(targetdrive + targetturn);
+        rb.setTargetPosition(targetdrive + targetturn);
+        lf.setTargetPosition(targetdrive - targetturn);
+        lb.setTargetPosition(targetdrive - targetturn);
+        rf.setPower(pwr);
+        rb.setPower(pwr);
+        lf.setPower(pwr);
+        lb.setPower(pwr);
+
+        while (opModeIsActive() && rf.isBusy()) {
+            telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());
+
+            telemetry.addData("rfpow", rf.getPower());
+            telemetry.addData("rbpow", rb.getPower());
+            telemetry.addData("lfpow", lf.getPower());
+            telemetry.addData("lbpow", lb.getPower());
             telemetry.update();
         }
         halt();
     }
 
-    public void drive(double pwr, double distance, double arc) {    // NOT IMPLEMENTED
-
-    }
-
     public void pivot(double angle, double pwr) {
         reset();
-        double distance = Math.PI * WHEEL_SPAN * angle / 360;
+        double distance = Math.PI * WHEEL_SPAN * angle / 180;
         int target = (int)(distance * TICKS_PER_INCH);
         pwr = Math.abs(pwr);
 
-        if(target < 0)
-            pwr = -pwr;
+        rf.setTargetPosition(target);
+        rb.setTargetPosition(target);
+        lf.setTargetPosition(-target);
+        lb.setTargetPosition(-target);
+        rf.setPower(pwr);
+        rb.setPower(pwr);
+        lf.setPower(pwr);
+        lb.setPower(pwr);
 
-        for(DcMotor d : left) {
-            d.setTargetPosition(target);
-            d.setPower(pwr);
-        }
-        for(DcMotor d : right) {
-            d.setTargetPosition(-target);
-            d.setPower(-pwr);
-        }
+        while (opModeIsActive() && rf.isBusy()) {
+            telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());
 
-        while (opModeIsActive() && left[0].isBusy()) {
-
+            telemetry.addData("rfpow", rf.getPower());
+            telemetry.addData("rbpow", rb.getPower());
+            telemetry.addData("lfpow", lf.getPower());
+            telemetry.addData("lbpow", lb.getPower());
+            telemetry.update();
         }
         halt();
+    }
+
+    public void dropmarker() {
+        ex.setPower(-1.0);
+        sleep(5000);
+        ex.setPower(0.2);
+        dr.setPosition(0.4);
+        sleep(1000);
+        dr.setPosition(1.0);
+        ex.setPower(0.1);
     }
 }
