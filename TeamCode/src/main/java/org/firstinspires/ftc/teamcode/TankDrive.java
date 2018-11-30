@@ -124,10 +124,10 @@ public class TankDrive extends OpMode {
         rightPower = Range.clip(drive - turn, -1.0, 1.0);
 
         // Send calculated power to wheels
-        /*for (DcMotor d : left)
+        for (DcMotor d : left)
             d.setPower(leftPower);
         for (DcMotor d : right)
-            d.setPower(rightPower);*/
+            d.setPower(rightPower);
 
         //ex.setPower(0.5);
 

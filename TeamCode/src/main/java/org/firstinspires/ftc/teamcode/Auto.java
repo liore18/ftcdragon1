@@ -65,16 +65,22 @@ public class Auto extends LinearOpMode {
 
 
         drive(1, 0.1);
+        sleep(1000);
         drive(-1, 1);
+        sleep(1000);
         pivot(90, 0.2);
+        sleep(1000);
         pivot(-90, 1);
+        sleep(1000);
         drive(1, 0.1, 90);
+        sleep(1000);
         drive(-1, 1, 90);
+        sleep(1000);
         dropmarker();
         halt();
     }
 
-    public void initialize() {
+    private void initialize() {
         rf = hardwareMap.get(DcMotor.class, "rf");         // the
         rb = hardwareMap.get(DcMotor.class, "rb");         // four
         lf = hardwareMap.get(DcMotor.class, "lf");        // go into
@@ -213,4 +219,6 @@ public class Auto extends LinearOpMode {
         dr.setPosition(1.0);
         ex.setPower(0.1);
     }
+
+    
 }
