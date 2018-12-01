@@ -29,9 +29,6 @@ public class Auto extends LinearOpMode {
     private DcMotor lb = null;
     private DcMotor rb = null;
 
-    private DcMotor[] right;
-    private DcMotor[] left;
-
     private DcMotor coll = null;
     private DcMotor lift = null; // p2rs
     private DcMotor winch = null;

@@ -62,9 +62,6 @@ public class TankDrive extends OpMode {
     private DcMotor lb = null;
     private DcMotor rb = null;
 
-    private DcMotor[] right;
-    private DcMotor[] left;
-
     private DcMotor coll = null;
     private DcMotor lift = null; // p2rs
     private DcMotor winch = null;
@@ -80,19 +77,18 @@ public class TankDrive extends OpMode {
      */
     @Override
     public void init() {
-        left = new DcMotor[2];
-        left[0] = hardwareMap.get(DcMotor.class, "lf");         // the
-        left[1] = hardwareMap.get(DcMotor.class, "lb");         // four
+        lf = hardwareMap.get(DcMotor.class, "lf");         // the
+        lb = hardwareMap.get(DcMotor.class, "lb");         // four
 
+         // motors
+        rf = hardwareMap.get(DcMotor.class, "rf");        // go into
+        rb = hardwareMap.get(DcMotor.class, "rb");        // two array
 
-        right = new DcMotor[2];                                             // motors
-        right[0] = hardwareMap.get(DcMotor.class, "rf");        // go into
-        right[1] = hardwareMap.get(DcMotor.class, "rb");        // two array
+        lf.setDirection(DcMotor.Direction.REVERSE);
+        lb.setDirection(DcMotor.Direction.REVERSE);
 
-        for(DcMotor d : left)
-            d.setDirection(DcMotor.Direction.REVERSE);
-        for(DcMotor d : right)
-            d.setDirection(DcMotor.Direction.FORWARD);
+        rf.setDirection(DcMotor.Direction.FORWARD);
+        rb.setDirection(DcMotor.Direction.FORWARD);
 
         // Tell the driver that initialization is complete.
         ex = hardwareMap.get(CRServo.class, "ex");              // extend marker
@@ -124,10 +120,12 @@ public class TankDrive extends OpMode {
         rightPower = Range.clip(drive - turn, -1.0, 1.0);
 
         // Send calculated power to wheels
-        for (DcMotor d : left)
-            d.setPower(leftPower);
-        for (DcMotor d : right)
-            d.setPower(rightPower);
+
+            lf.setPower(leftPower);
+            lb.setPower(leftPower);
+
+            rf.setPower(rightPower);
+            rb.setPower(rightPower);
 
         //ex.setPower(0.5);
 
