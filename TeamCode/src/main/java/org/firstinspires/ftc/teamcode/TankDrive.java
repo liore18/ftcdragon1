@@ -111,8 +111,8 @@ public class TankDrive extends OpMode {
             dr.setPosition(0.4);
         if(gamepad1.left_bumper)
             dr.setPosition(1.0);
-
-        if(gamepad1.right_trigger > .5)
+//run collection
+        if(gamepad1.right_trigger > 0.5)
             coll.setPower(1);
         else
             coll.setPower(0);
