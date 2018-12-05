@@ -123,6 +123,7 @@ public class Auto extends LinearOpMode {
         rb.setTargetPosition(target);
         lf.setTargetPosition(target);
         lb.setTargetPosition(target);
+
         rf.setPower(pwr);
         rb.setPower(pwr);
         lf.setPower(pwr);
@@ -209,13 +210,13 @@ public class Auto extends LinearOpMode {
     }
 
     public void dropmarker() {
-        ex.setPower(-1.0);
+        ex.setPower(0.45);
         sleep(5000);
         ex.setPower(0.2);
         dr.setPosition(0.4);
         sleep(1000);
         dr.setPosition(1.0);
-        ex.setPower(0.1);
+        ex.setPower(-0.6);
     }
 
     
