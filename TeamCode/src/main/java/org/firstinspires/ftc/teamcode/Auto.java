@@ -60,19 +60,19 @@ public class Auto extends LinearOpMode {
         //  use pivot(angle, power) to turn while stopped
         //
 
-        lift();
+        //lift();
         drive(1, 0.1);
-        sleep(1000);
+        //sleep(1000);
         drive(-1, 1);
-        sleep(1000);
+        //sleep(1000);
         pivot(90, 0.2);
-        sleep(1000);
+       // sleep(1000);
         pivot(-90, 1);
-        sleep(1000);
+        //sleep(1000);
         drive(1, 0.1, 90);
-        sleep(1000);
+        //sleep(1000);
         drive(-1, 1, 90);
-        sleep(1000);
+        //sleep(1000);
         dropmarker();
         halt();
     }
@@ -210,19 +210,19 @@ public class Auto extends LinearOpMode {
     }
 
     public void dropmarker() {
-        ex.setPower(0.45);
+        ex.setPower(1.0);
         sleep(5000);
         ex.setPower(0.2);
-        dr.setPosition(0.4);
-        sleep(1000);
         dr.setPosition(1.0);
+        sleep(1000);
+        dr.setPosition(0.5);
         ex.setPower(-0.6);
     }
 
     public void lift() {
         lift.setPower(1.0);
         sleep(3000);
-        lift.setPower(0);
+       lift.setPower(0);
     }
 
 
