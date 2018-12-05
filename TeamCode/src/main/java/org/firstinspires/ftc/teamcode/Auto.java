@@ -60,7 +60,7 @@ public class Auto extends LinearOpMode {
         //  use pivot(angle, power) to turn while stopped
         //
 
-
+        lift();
         drive(1, 0.1);
         sleep(1000);
         drive(-1, 1);
@@ -218,6 +218,13 @@ public class Auto extends LinearOpMode {
         dr.setPosition(1.0);
         ex.setPower(-0.6);
     }
+
+    public void lift() {
+        lift.setPower(1.0);
+        sleep(3000);
+        lift.setPower(0);
+    }
+
 
     
 }
