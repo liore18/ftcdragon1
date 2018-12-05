@@ -94,7 +94,7 @@ public class TankDrive extends OpMode {
         ex = hardwareMap.get(CRServo.class, "ex");              // extend marker
         dr = hardwareMap.get(Servo.class, "dr");                // drop marker
 
-        //coll = hardwareMap.get(DcMotor.class, "coll");                   // collection motor
+        coll = hardwareMap.get(DcMotor.class, "coll");                   // collection motor
 
         telemetry.addData("Status", "Let's roll.");          // tell the driver we're all set
     }
@@ -130,16 +130,19 @@ public class TankDrive extends OpMode {
         //ex.setPower(0.5);
 
         if(gamepad1.x)
-            ex.setPower(0.1);
-        else if(gamepad1.y)
-            ex.setPower(-1.0);
+            ex.setPower(0.45);
         else
-            ex.setPower(0.2);
+            ex.setPower(-0.6);
 
         if(gamepad1.right_bumper)
             dr.setPosition(0.4);
         if(gamepad1.left_bumper)
             dr.setPosition(1.0);
+
+        if(gamepad1.a)
+            coll.setPower(1.0);
+        else
+            coll.setPower(0.0);
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());

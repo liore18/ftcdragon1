@@ -157,6 +157,7 @@ public class Auto extends LinearOpMode {
         rb.setTargetPosition(targetdrive + targetturn);
         lf.setTargetPosition(targetdrive - targetturn);
         lb.setTargetPosition(targetdrive - targetturn);
+
         rf.setPower(pwr);
         rb.setPower(pwr);
         lf.setPower(pwr);
