@@ -103,13 +103,10 @@ public class TankDrive extends OpMode {
         if(gamepad1.x)
             ex.setPower(0.45);
         else
-<<<<<<< HEAD
             ex.setPower(-0.6);
 
-=======
             ex.setPower(0.2);
 //drop
->>>>>>> origin/master
         if(gamepad1.right_bumper)
             dr.setPosition(0.4);
         if(gamepad1.left_bumper)
@@ -124,11 +121,6 @@ public class TankDrive extends OpMode {
             lift.setPower(-1);
         }else
             lift.setPower(0);
-
-        if(gamepad1.a)
-            coll.setPower(1.0);
-        else
-            coll.setPower(0.0);
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
