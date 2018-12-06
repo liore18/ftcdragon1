@@ -61,17 +61,17 @@ public class Auto extends LinearOpMode {
         //
 
         //lift();
-        drive(1, 0.1);
+        //drive(1, 0.1);
         //sleep(1000);
-        drive(-1, 1);
+        //drive(-1, 1);
         //sleep(1000);
-        pivot(90, 0.2);
+        //pivot(90, 0.2);
        // sleep(1000);
-        pivot(-90, 1);
+        //pivot(-90, 1);
         //sleep(1000);
-        drive(1, 0.1, 90);
+        //drive(1, 0.1, 90);
         //sleep(1000);
-        drive(-1, 1, 90);
+        //drive(-1, 1, 90);
         //sleep(1000);
         dropmarker();
         halt();
@@ -215,9 +215,12 @@ public class Auto extends LinearOpMode {
         ex.setPower(0.2);
         dr.setPosition(1.0);
         sleep(1000);
-        dr.setPosition(0.5);
-        ex.setPower(-0.6);
+        dr.setPosition(0.4);
+        sleep(1000);
+        ex.setPower(-1.0);
+        sleep(5000);
     }
+
 
     public void lift() {
         lift.setPower(1.0);
