@@ -217,7 +217,7 @@ public class Auto extends LinearOpMode {
         sleep(1000);
         dr.setPosition(0.4);
         sleep(1000);
-        ex.setPower(-0.6);
+        ex.setPower(-1.0);
         sleep(5000);
     }
 
