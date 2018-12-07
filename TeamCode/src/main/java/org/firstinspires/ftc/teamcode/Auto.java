@@ -66,9 +66,11 @@ public class Auto extends LinearOpMode {
         //drive(-1, 1);
         //sleep(1000);
         //pivot(90, 0.2);
-       // sleep(1000);
+        //sleep(1000);
         //pivot(-90, 1);
         //sleep(1000);
+        //pivot(720,0.2);
+        pivottheotherone(720,0.2);
         //drive(1, 0.1, 90);
         //sleep(1000);
         //drive(-1, 1, 90);
@@ -155,9 +157,9 @@ public class Auto extends LinearOpMode {
         pwr = Math.abs(pwr);
 
         rf.setTargetPosition(targetdrive + targetturn);
-        rb.setTargetPosition(targetdrive + targetturn);
+        rb.setTargetPosition(targetdrive + (int)(targetturn * .5547));
         lf.setTargetPosition(targetdrive - targetturn);
-        lb.setTargetPosition(targetdrive - targetturn);
+        lb.setTargetPosition(targetdrive - (int)(targetturn * .5547));
 
         rf.setPower(pwr);
         rb.setPower(pwr);
@@ -181,18 +183,48 @@ public class Auto extends LinearOpMode {
 
     public void pivot(double angle, double pwr) {
         reset();
-        double distance = Math.PI * WHEEL_SPAN * angle / 180;
+        double distance = Math.PI * (WHEEL_SPAN/2) * angle / 180; // remember learning s = r*theta? it's back to haunt you.
         int target = (int)(distance * TICKS_PER_INCH);
         pwr = Math.abs(pwr);
 
         rf.setTargetPosition(target);
-        rb.setTargetPosition(target);
+        rb.setTargetPosition((int)(target * .5547));
         lf.setTargetPosition(-target);
-        lb.setTargetPosition(-target);
+        lb.setTargetPosition(-(int)(target * .5547));
         rf.setPower(pwr);
-        rb.setPower(pwr);
+        rb.setPower(pwr * .5547);
         lf.setPower(pwr);
-        lb.setPower(pwr);
+        lb.setPower(pwr * .5547);
+
+        while (opModeIsActive() && rf.isBusy()) {
+            telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());
+
+            telemetry.addData("rfpow", rf.getPower());
+            telemetry.addData("rbpow", rb.getPower());
+            telemetry.addData("lfpow", lf.getPower());
+            telemetry.addData("lbpow", lb.getPower());
+            telemetry.update();
+        }
+        halt();
+    }
+
+    public void pivottheotherone(double angle, double pwr) {
+        reset();
+        double distance = Math.PI * (WHEEL_SPAN/2) * angle / 180; // remember learning s = r*theta? it's back to haunt you.
+        int target = (int)(distance * TICKS_PER_INCH);
+        pwr = Math.abs(pwr);
+
+        rf.setTargetPosition(target);
+        rb.setTargetPosition(0);
+        lf.setTargetPosition(-target);
+        lb.setTargetPosition(0);
+        rf.setPower(pwr);
+        rb.setPower(0);
+        lf.setPower(pwr);
+        lb.setPower(0);
 
         while (opModeIsActive() && rf.isBusy()) {
             telemetry.addData("rfpos", rf.getCurrentPosition());
