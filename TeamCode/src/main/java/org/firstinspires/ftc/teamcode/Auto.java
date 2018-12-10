@@ -70,7 +70,7 @@ public class Auto extends LinearOpMode {
         //pivot(-90, 1);
         //sleep(1000);
         //pivot(720,0.2);
-        pivottheotherone(720,0.2);
+        //pivottheotherone(720,0.2);
         //drive(1, 0.1, 90);
         //sleep(1000);
         //drive(-1, 1, 90);
@@ -244,10 +244,9 @@ public class Auto extends LinearOpMode {
     public void dropmarker() {
         ex.setPower(1.0);
         sleep(5000);
-        ex.setPower(0.2);
         dr.setPosition(1.0);
         sleep(1000);
-        dr.setPosition(0.4);
+        dr.setPosition(.4);
         sleep(1000);
         ex.setPower(-1.0);
         sleep(5000);
