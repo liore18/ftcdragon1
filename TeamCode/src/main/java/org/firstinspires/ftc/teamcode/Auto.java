@@ -65,17 +65,17 @@ public class Auto extends LinearOpMode {
         //sleep(1000);
         //drive(-1, 1);
         //sleep(1000);
-        //pivot(90, 0.2);
-        //sleep(1000);
-        //pivot(-90, 1);
-        //sleep(1000);
+        pivot(90, 0.2);
+        sleep(1000);
+        pivot(-90, 1);
+        sleep(1000);
         //pivot(720,0.2);
         //pivottheotherone(720,0.2);
         //drive(1, 0.1, 90);
         //sleep(1000);
         //drive(-1, 1, 90);
         //sleep(1000);
-        dropmarker();
+        //dropmarker();
         halt();
     }
 
@@ -183,7 +183,7 @@ public class Auto extends LinearOpMode {
 
     public void pivot(double angle, double pwr) {
         reset();
-        double distance = Math.PI * (WHEEL_SPAN/2) * angle / 180; // remember learning s = r*theta? it's back to haunt you.
+        double distance = Math.PI * (WHEEL_SPAN) * angle / 255; // remember learning s = r*theta? it's back to haunt you.
         int target = (int)(distance * TICKS_PER_INCH);
         pwr = Math.abs(pwr);
 
