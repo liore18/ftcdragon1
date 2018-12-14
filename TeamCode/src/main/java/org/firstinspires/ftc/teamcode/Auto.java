@@ -29,12 +29,8 @@ public class Auto extends LinearOpMode {
     private DcMotor lb = null;
     private DcMotor rb = null;
 
-    private DcMotor coll = null;
     private DcMotor lift = null; // p2rs
-    private DcMotor winch = null;
-
-    private Servo dump = null; // p2rt
-    private Servo grip = null;
+    private Servo claw = null;
 
     private CRServo ex = null;
     private Servo dr = null;
@@ -60,21 +56,7 @@ public class Auto extends LinearOpMode {
         //  use pivot(angle, power) to turn while stopped
         //
 
-        //lift();
-        //drive(1, 0.1);
-        //sleep(1000);
-        //drive(-1, 1);
-        //sleep(1000);
-        //pivot(90, 0.2);
-        //sleep(1000);
-        //pivot(-90, 1);
-        //sleep(1000);
-        //pivot(720,0.2);
-        //pivottheotherone(720,0.2);
-        //drive(1, 0.1, 90);
-        //sleep(1000);
-        //drive(-1, 1, 90);
-        //sleep(1000);
+
         dropmarker();
         halt();
     }
@@ -94,6 +76,9 @@ public class Auto extends LinearOpMode {
         // Tell the driver that initialization is complete.
         ex = hardwareMap.get(CRServo.class, "ex");              // extend marker
         dr = hardwareMap.get(Servo.class, "dr");                // drop marker
+
+        lift = hardwareMap.get(DcMotor.class, "lift");
+        claw = hardwareMap.get(Servo.class, "claw");
     }
 
     private void reset() {
@@ -257,7 +242,8 @@ public class Auto extends LinearOpMode {
     public void lift() {
         lift.setPower(1.0);
         sleep(3000);
-       lift.setPower(0);
+        lift.setPower(0);
+        claw.setPosition(1.0);
     }
 
 
