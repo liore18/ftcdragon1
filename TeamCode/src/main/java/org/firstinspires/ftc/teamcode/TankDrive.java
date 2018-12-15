@@ -113,21 +113,23 @@ public class TankDrive extends OpMode {
        // if(gamepad1.left_bumper)
            // dr.setPosition(1.0);
 //run collection
-        if(gamepad1.right_trigger > 0.5)
+        if(gamepad2.a || gamepad1.a)
             coll.setPower(1);
+        else if(gamepad2.b || gamepad1.b)
+            coll.setPower(-1);
         else
             coll.setPower(0);
 //lift
-        if(gamepad1.a)         //up
+        if(gamepad2.dpad_up || gamepad1.dpad_up)         //up
             lift.setPower(1);
-        else if(gamepad1.b)         //down
+        else if(gamepad2.dpad_down || gamepad1.dpad_down)         //down
             lift.setPower(-1);
         else
             lift.setPower(0);
 
-        if(gamepad1.left_bumper)
+        if(gamepad2.left_bumper || gamepad1.left_bumper)
             claw.setPosition(1.0);
-        if(gamepad1.right_bumper)
+        if(gamepad2.right_bumper || gamepad1.right_bumper)
             claw.setPosition(0.0);
 
         // Show the elapsed game time and wheel power.

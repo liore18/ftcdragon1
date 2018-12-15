@@ -1,15 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name="Autonomous", group="Autonomous")
-public class Auto extends LinearOpMode {
+@Autonomous(name="JUST DROP", group="Autonomous")
+public class JustDrop extends LinearOpMode {
 
     // constants to help calculate how far we're moving
 
@@ -56,8 +55,8 @@ public class Auto extends LinearOpMode {
         //  use pivot(angle, power) to turn while stopped
         //
 
-
-        dropmarker();
+        lift();
+        drive(0.5,0.25);   //go away from lander
         halt();
     }
 
