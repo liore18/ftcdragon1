@@ -34,35 +34,30 @@ public class Mechybois extends OpMode {
 
     private DcMotor coll = null;
     private DcMotor lift = null; // p2rs
-    private DcMotor winch = null;
 
-    private Servo dump = null; // p2rt
-    private Servo grip = null;
+    private Servo arm1 = null;
+    private Servo arm2 = null;
+    private Servo hook = null;
 
-    private CRServo ex = null;
-    private Servo dr = null;
 
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
-        lf = hardwareMap.get(DcMotor.class, "lf");         // the
-        lb = hardwareMap.get(DcMotor.class, "lb");         // four
-
-         // motors
-        rf = hardwareMap.get(DcMotor.class, "rf");        // go into
-        rb = hardwareMap.get(DcMotor.class, "rb");        // two array
+        lf = hardwareMap.get(DcMotor.class, "lf");
+        lb = hardwareMap.get(DcMotor.class, "lb");
+        rf = hardwareMap.get(DcMotor.class, "rf");
+        rb = hardwareMap.get(DcMotor.class, "rb");
 
         lf.setDirection(DcMotor.Direction.REVERSE);
         lb.setDirection(DcMotor.Direction.REVERSE);
-
         rf.setDirection(DcMotor.Direction.FORWARD);
         rb.setDirection(DcMotor.Direction.FORWARD);
 
-        // Tell the driver that initialization is complete.
-        ex = hardwareMap.get(CRServo.class, "ex");              // extend marker
-        dr = hardwareMap.get(Servo.class, "dr");                // drop marker
+        arm1 = hardwareMap.get(Servo.class, "arm1");
+        arm2 = hardwareMap.get(Servo.class, "arm2");
+        hook = hardwareMap.get(Servo.class, "hook");
 
         coll = hardwareMap.get(DcMotor.class, "coll");                   // collection motor
         lift = hardwareMap.get(DcMotor.class, "lift"); // lift motor
@@ -81,10 +76,10 @@ public class Mechybois extends OpMode {
 
     @Override
     public void loop() {
-        if(gamepad1.right_trigger > 0.5)
-            coll.setPower(1);
-        else
-            coll.setPower(0);
+        //if(gamepad1.right_trigger > 0.5)
+            //coll.setPower(1);
+       // else
+          //  coll.setPower(0);
 
 
         float drive = scaleInput(-gamepad1.left_stick_y);
@@ -115,10 +110,26 @@ public class Mechybois extends OpMode {
            lift.setPower(-1);
         }else
             lift.setPower(0);
-        if(gamepad1.right_trigger > 0.5)
-            coll.setPower(1);
-        else
-            coll.setPower(0);
+       // if(gamepad1.right_trigger > 0.5)
+            //coll.setPower(1);
+        //else
+            //coll.setPower(0);
+
+        //arm
+        if(gamepad1.y || gamepad2.y){
+            arm1.setPosition(1);
+            arm2.setPosition(1);
+
+        } else if(gamepad1.x || gamepad2.x){
+            arm1.setPosition(0);
+            arm2.setPosition(0);
+        }
+        if(gamepad1.right_bumper || gamepad2.right_bumper){
+            hook.setPosition(1);
+        }else if (gamepad1.left_bumper || gamepad2.left_bumper){
+            hook.setPosition(0);
+        }
+
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
