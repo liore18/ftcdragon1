@@ -53,14 +53,14 @@ public class AutoDepot extends LinearOpMode {
     public void runOpMode() {
 
         //region initialization
+        initialize();
+
         initVuforia();
         if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
             initTfod();
         } else {
             telemetry.addData("Sorry!", "This device is not compatible with TFOD");
         }
-
-        initialize();
 
         reset();
 
@@ -205,6 +205,7 @@ public class AutoDepot extends LinearOpMode {
         hook = hardwareMap.get(Servo.class, "hook");
 
         hook.setPosition(0.0);
+        sleep(1000);
     }
 
     private void reset() {
@@ -401,7 +402,7 @@ public class AutoDepot extends LinearOpMode {
     }
 
     private void lift() {
-        lift.setPower(1.0);
+        lift.setPower(-1.0);
         sleep(3000);
         lift.setPower(0);
         hook.setPosition(1.0);
