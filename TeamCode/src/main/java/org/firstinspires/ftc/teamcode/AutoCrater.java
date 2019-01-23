@@ -81,7 +81,7 @@ public class AutoCrater extends LinearOpMode {
         **/
 
         lift();
-        drive(0.25,.5);   // move 6 inches forward
+        drive(0.25,.5, 6);   // move 6 inches forward
 
         int gpos = 0;
 
@@ -133,32 +133,32 @@ public class AutoCrater extends LinearOpMode {
         //endregion
 
         if(gpos == 1) {
-            drive(0.5 * Math.sqrt(2), 0.5);
-            drive(-0.5 * Math.sqrt(2), 0.5);
+            drive(0.5 * Math.sqrt(2), 0.5, 6);
+            drive(-0.5 * Math.sqrt(2), 0.5, 6);
             pivot(-90, 0.5);
-            drive(1.5 * Math.sqrt(2), 0.5);
+            drive(1.5 * Math.sqrt(2), 0.5, 6);
             pivot(-45, 0.5);
         }
         if(gpos == 0) {
             pivot(-45, 0.5);
-            drive(1, 0.5);
-            drive(-1, 0.5);
+            drive(1, 0.5, 6);
+            drive(-1, 0.5, 6);
             pivot(-45, 0.5);
-            drive(1.5 * Math.sqrt(2), 0.5);
+            drive(1.5 * Math.sqrt(2), 0.5, 6);
             pivot(-45, 0.5);
         }
         if(gpos == 2) {
             pivot(45, 0.5);
-            drive(1, 0.5);
-            drive(-1, 0.5);
+            drive(1, 0.5, 6);
+            drive(-1, 0.5, 6);
             pivot(-135, 0.5);
-            drive(1.5 * Math.sqrt(2), 0.5);
+            drive(1.5 * Math.sqrt(2), 0.5, 6);
             pivot(-45, 0.5);
         }
 
-        drive(3,0.7);    // drive towards depot
+        drive(3,0.7, 6);    // drive towards depot
         dropmarker();
-        drive(-5,1);
+        drive(-5,1, 6);
         halt();
     }
 
@@ -227,7 +227,7 @@ public class AutoCrater extends LinearOpMode {
         lb.setPower(0);
     }
 
-    public void drive(double distance, double pwr) {
+    private void drive(double distance, double pwr) {
         reset();
         int target = (int)(distance * TICKS_PER_TILE);
 
@@ -259,7 +259,51 @@ public class AutoCrater extends LinearOpMode {
         halt();
     }
 
-    private void drive(double pwr, double distance, double arc) {    // NOT IMPLEMENTED
+    /**
+     * @param distance to move forward in tiles
+     * @param pwr to give the motors, from 0.0 to 1.0
+     * @param ramp the distance in inches to accelerate linearly through
+     */
+    private void drive(double distance, double pwr, int ramp) {
+        reset();
+        int target = (int)(distance * TICKS_PER_TILE);
+
+        double fpwr = Math.abs(pwr);
+
+        rf.setTargetPosition(target);
+        rb.setTargetPosition(target);
+        lf.setTargetPosition(target);
+        lb.setTargetPosition(target);
+
+        while (opModeIsActive() && rf.isBusy()) {
+
+            if(rf.getCurrentPosition() >= ramp) {
+                pwr = fpwr;
+            } else {
+                pwr = fpwr * rf.getCurrentPosition() / ramp;
+            }
+
+            rf.setPower(pwr);
+            rb.setPower(pwr);
+            lf.setPower(pwr);
+            lb.setPower(pwr);
+
+            telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());
+
+            telemetry.addData("rfpow", rf.getPower());
+            telemetry.addData("rbpow", rb.getPower());
+            telemetry.addData("lfpow", lf.getPower());
+            telemetry.addData("lbpow", lb.getPower());
+            telemetry.update();
+        }
+        reset();
+        halt();
+    }
+
+    private void drive(double distance, double pwr, double arc) {    // NOT IMPLEMENTED
         reset();
         double arclength = Math.PI * WHEEL_SPAN * arc / 180;
 
@@ -356,7 +400,6 @@ public class AutoCrater extends LinearOpMode {
     private void dropmarker() {
 
     }
-
 
     private void lift() {
         lift.setPower(1.0);

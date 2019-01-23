@@ -1,18 +1,29 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
+
+import java.util.List;
+
 @Autonomous(name="Depot", group="Autonomous")
 public class AutoDepot extends LinearOpMode {
+    //Tfod constants
+    private static final String VUFORIA_KEY = "AXDMU6L/////AAABmYsje6g+d0FouarmMJSceCUvoPLsXYHB38V7+MVCV//rzuYmaMR0aeKY+X1gyKROXD2HP/yqTdMoGKjNifE0TLgN3fUlxqF8CAejftyRLJXX7t1xBrivJKRDgDbQrX6I+6xe2ZcfInF2KnfQHOrlMh/i7M4RU6vzkIwKIzCwkV/SaMxAyYWpEngCIK+3ZelwN2uVIc0nXFNEXI2qVTaiAb7ffvbqzCBcxXrxCzbahSso5A/fD9f6FGsyMvVTQUzRaybT473gX+RJ1nPHyqjTscffYVyBGl0sAQ259VwLGwM+FE+ymehKO1shL9s1ITfaZaRdSWxzxvdS/e5xaavoXEw3ylD16GUnclpvw1s/ts7y";
+    private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
+    private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
+    private static final String LABEL_SILVER_MINERAL = "Silver Mineral";
 
     // constants to help calculate how far we're moving
-
     static final double TICKS_PER_ROTATION = 2240.0 / 2;
     static final double WHEEL_DIAMETER = 3.543;  // bad units
 
@@ -22,6 +33,9 @@ public class AutoDepot extends LinearOpMode {
 
     // variables.
 
+    private VuforiaLocalizer vuforia;
+    private TFObjectDetector tfod;
+
     private ElapsedTime runtime = new ElapsedTime();
 
     private DcMotor lf = null;
@@ -30,13 +44,21 @@ public class AutoDepot extends LinearOpMode {
     private DcMotor rb = null;
 
     private DcMotor lift = null; // p2rs
-    private Servo claw = null;
+    private Servo hook = null;
 
     private CRServo ex = null;
     private Servo dr = null;
 
     @Override
     public void runOpMode() {
+
+        //region initialization
+        initVuforia();
+        if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
+            initTfod();
+        } else {
+            telemetry.addData("Sorry!", "This device is not compatible with TFOD");
+        }
 
         initialize();
 
@@ -50,43 +72,139 @@ public class AutoDepot extends LinearOpMode {
 
         telemetry.addData("Status", "Driving");
         telemetry.update();
+        //endregion
 
-        //          PUT ALL THE CODE HERE
-        //  use drive(distance, power) to move forward or backward (distance is in field tiles)
-        //  use pivot(angle, power) to turn while stopped
-        //
+        /**          PUT ALL THE CODE HERE
+        *  use drive(distance, power) to move forward or backward (distance is in field tiles)
+        *  use pivot(angle, power) to turn while stopped
+        **/
+
         lift();
-        drive(0.9,.7);   //go away from lander
-        pivot(90,.7);   // turn towards crater
-        drive(1.8,.7);    // drive towards crater
+        drive(0.25,.5, 6);   // move 6 inches forward
 
-        pivot(-315,.7); // turn towards depot
-        drive(2.25,.7);
+        int gpos = 0;
 
+        //region tfod
+        if (opModeIsActive()) {
+            /** Activate Tensor Flow Object Detection. */
+            if (tfod != null) {
+                tfod.activate();
+            }
+
+            while (opModeIsActive()) {
+                if (tfod != null) {
+                    // getUpdatedRecognitions() will return null if no new information is available since
+                    // the last time that call was made.
+                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+                    if (updatedRecognitions != null) {
+                        telemetry.addData("# Object Detected", updatedRecognitions.size());
+                        if (updatedRecognitions.size() == 3) {
+                            int goldMineralX = -1;
+                            int silverMineral1X = -1;
+                            int silverMineral2X = -1;
+                            for (Recognition recognition : updatedRecognitions) {
+                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+                                    goldMineralX = (int) recognition.getLeft();
+                                } else if (silverMineral1X == -1) {
+                                    silverMineral1X = (int) recognition.getLeft();
+                                } else {
+                                    silverMineral2X = (int) recognition.getLeft();
+                                }
+                            }
+                            if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
+                                if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
+                                    gpos = 0;
+                                } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
+                                    gpos = 2;
+                                } else {
+                                    gpos = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (tfod != null) {
+            tfod.shutdown();
+        }
+        //endregion
+
+        if(gpos == 1) {
+            drive(0.5 * Math.sqrt(2), 0.5, 6);
+            drive(-0.5 * Math.sqrt(2), 0.5, 6);
+            pivot(-90, 0.5);
+            drive(1.5 * Math.sqrt(2), 0.5, 6);
+            pivot(-45, 0.5);
+        }
+        if(gpos == 0) {
+            pivot(-45, 0.5);
+            drive(1, 0.5, 6);
+            drive(-1, 0.5, 6);
+            pivot(-45, 0.5);
+            drive(1.5 * Math.sqrt(2), 0.5, 6);
+            pivot(-45, 0.5);
+        }
+        if(gpos == 2) {
+            pivot(45, 0.5);
+            drive(1, 0.5, 6);
+            drive(-1, 0.5, 6);
+            pivot(-135, 0.5);
+            drive(1.5 * Math.sqrt(2), 0.5, 6);
+            pivot(-45, 0.5);
+        }
+
+        drive(3,0.7, 6);    // drive towards depot
         dropmarker();
-
-        drive(-5,1);
+        drive(-5,1, 6);
         halt();
     }
 
+    private void initVuforia() {
+        /*
+         * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
+         */
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+
+        parameters.vuforiaLicenseKey = VUFORIA_KEY;
+        parameters.cameraDirection = CameraDirection.BACK;
+
+        //  Instantiate the Vuforia engine
+        vuforia = ClassFactory.getInstance().createVuforia(parameters);
+
+        // Loading trackables is not necessary for the Tensor Flow Object Detection engine.
+    }
+
+    private void initTfod() {
+        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
+                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
+        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
+    }
+
     private void initialize() {
-        rf = hardwareMap.get(DcMotor.class, "rf");         // the
-        rb = hardwareMap.get(DcMotor.class, "rb");         // four
-        lf = hardwareMap.get(DcMotor.class, "lf");        // go into
-        lb = hardwareMap.get(DcMotor.class, "lb");        // two arrays
+        rf = hardwareMap.get(DcMotor.class, "rf");
+        rb = hardwareMap.get(DcMotor.class, "rb");
+        lf = hardwareMap.get(DcMotor.class, "lf");
+        lb = hardwareMap.get(DcMotor.class, "lb");
 
         rf.setDirection(DcMotor.Direction.FORWARD);
         rb.setDirection(DcMotor.Direction.FORWARD);
         lf.setDirection(DcMotor.Direction.REVERSE);
         lb.setDirection(DcMotor.Direction.REVERSE);
 
+        rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Tell the driver that initialization is complete.
-        ex = hardwareMap.get(CRServo.class, "ex");              // extend marker
-        dr = hardwareMap.get(Servo.class, "dr");                // drop marker
-
         lift = hardwareMap.get(DcMotor.class, "lift");
-        claw = hardwareMap.get(Servo.class, "claw");
+        hook = hardwareMap.get(Servo.class, "hook");
+
+        hook.setPosition(0.0);
     }
 
     private void reset() {
@@ -108,7 +226,7 @@ public class AutoDepot extends LinearOpMode {
         lb.setPower(0);
     }
 
-    public void drive(double distance, double pwr) {
+    private void drive(double distance, double pwr) {
         reset();
         int target = (int)(distance * TICKS_PER_TILE);
 
@@ -140,7 +258,51 @@ public class AutoDepot extends LinearOpMode {
         halt();
     }
 
-    public void drive(double pwr, double distance, double arc) {    // NOT IMPLEMENTED
+    /**
+     * @param distance to move forward in tiles
+     * @param pwr to give the motors, from 0.0 to 1.0
+     * @param ramp the distance in inches to accelerate linearly through
+     */
+    private void drive(double distance, double pwr, int ramp) {
+        reset();
+        int target = (int)(distance * TICKS_PER_TILE);
+
+        double fpwr = Math.abs(pwr);
+
+        rf.setTargetPosition(target);
+        rb.setTargetPosition(target);
+        lf.setTargetPosition(target);
+        lb.setTargetPosition(target);
+
+        while (opModeIsActive() && rf.isBusy()) {
+
+            if(rf.getCurrentPosition() >= ramp) {
+                pwr = fpwr;
+            } else {
+                pwr = fpwr * rf.getCurrentPosition() / ramp;
+            }
+
+            rf.setPower(pwr);
+            rb.setPower(pwr);
+            lf.setPower(pwr);
+            lb.setPower(pwr);
+
+            telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());
+
+            telemetry.addData("rfpow", rf.getPower());
+            telemetry.addData("rbpow", rb.getPower());
+            telemetry.addData("lfpow", lf.getPower());
+            telemetry.addData("lbpow", lb.getPower());
+            telemetry.update();
+        }
+        reset();
+        halt();
+    }
+
+    private void drive(double distance, double pwr, double arc) {    // NOT IMPLEMENTED
         reset();
         double arclength = Math.PI * WHEEL_SPAN * arc / 180;
 
@@ -174,7 +336,7 @@ public class AutoDepot extends LinearOpMode {
         halt();
     }
 
-    public void pivot(double angle, double pwr) {
+    private void swivelpivot(double angle, double pwr) {
         reset();
         double distance = 0.8*Math.PI * (WHEEL_SPAN) * angle / 255; // remember learning s = r*theta? it's back to haunt you.
         int target = (int)(distance * TICKS_PER_INCH);
@@ -204,54 +366,46 @@ public class AutoDepot extends LinearOpMode {
         halt();
     }
 
-    public void pivottheotherone(double angle, double pwr) {
+    private void pivot(double angle, double pwr) {
         reset();
         double distance = Math.PI * (WHEEL_SPAN/2) * angle / 180; // remember learning s = r*theta? it's back to haunt you.
         int target = (int)(distance * TICKS_PER_INCH);
         pwr = Math.abs(pwr);
 
         rf.setTargetPosition(target);
-        rb.setTargetPosition(0);
+        rb.setTargetPosition(target);
         lf.setTargetPosition(-target);
-        lb.setTargetPosition(0);
+        lb.setTargetPosition(-target);
         rf.setPower(pwr);
-        rb.setPower(0);
+        rb.setPower(pwr);
         lf.setPower(pwr);
-        lb.setPower(0);
+        lb.setPower(pwr);
 
         while (opModeIsActive() && rf.isBusy()) {
-            telemetry.addData("rfpos", rf.getCurrentPosition());
-            telemetry.addData("rbpos", rb.getCurrentPosition());
-            telemetry.addData("lfpos", lf.getCurrentPosition());
-            telemetry.addData("lbpos", lb.getCurrentPosition());
+            telemetry.addData("rfD", rf.getCurrentPosition());
+            telemetry.addData("rbD", rb.getCurrentPosition());
+            telemetry.addData("lfD", lf.getCurrentPosition());
+            telemetry.addData("lbD", lb.getCurrentPosition());
 
-            telemetry.addData("rfpow", rf.getPower());
-            telemetry.addData("rbpow", rb.getPower());
-            telemetry.addData("lfpow", lf.getPower());
-            telemetry.addData("lbpow", lb.getPower());
+            telemetry.addData("rfP", rf.getPower());
+            telemetry.addData("rbP", rb.getPower());
+            telemetry.addData("lfP", lf.getPower());
+            telemetry.addData("lbP", lb.getPower());
             telemetry.update();
         }
         halt();
     }
 
-    public void dropmarker() {
-        ex.setPower(1.0);
-        sleep(5000);
-        ex.setPower(0.2);
-        dr.setPosition(1.0);
-        sleep(1000);
-        dr.setPosition(.4);
-        sleep(1000);
-        ex.setPower(-1.0);
-        sleep(5000);
+    private void dropmarker() {
+
     }
 
-
-    public void lift() {
+    private void lift() {
         lift.setPower(1.0);
         sleep(3000);
         lift.setPower(0);
-        claw.setPosition(1.0);
+        hook.setPosition(1.0);
+        sleep(1000);
     }
 
 
