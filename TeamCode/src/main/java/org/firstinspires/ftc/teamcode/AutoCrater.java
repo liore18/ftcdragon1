@@ -5,8 +5,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcontroller.external.samples.SensorDigitalTouch;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
@@ -50,6 +52,9 @@ public class AutoCrater extends LinearOpMode {
     private CRServo ex = null;
     private Servo dr = null;
 
+    private TouchSensor touch = null;
+    private TouchSensor touch2 = null;
+
     @Override
     public void runOpMode() {
 
@@ -64,6 +69,13 @@ public class AutoCrater extends LinearOpMode {
         }
 
         reset();
+
+        lift.setPower(1.0);
+        while(!touch.isPressed()) {
+            telemetry.addData("Status", "RAISING");
+            telemetry.update();
+        }
+        lift.setPower(0.0);
 
         telemetry.addData("Status", "Nominal");
         telemetry.update();
@@ -204,6 +216,11 @@ public class AutoCrater extends LinearOpMode {
         // Tell the driver that initialization is complete.
         lift = hardwareMap.get(DcMotor.class, "lift");
         hook = hardwareMap.get(Servo.class, "hook");
+
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        touch = hardwareMap.touchSensor.get("touch");
+        touch2 = hardwareMap.touchSensor.get("touch2");
 
         hook.setPosition(0.0);
         sleep(1000);
@@ -404,7 +421,10 @@ public class AutoCrater extends LinearOpMode {
 
     private void lift() {
         lift.setPower(-1.0);
-        sleep(3000);
+        while(!touch2.isPressed()) {
+            telemetry.addData("Status", "LOWERING");
+            telemetry.update();
+        }
         lift.setPower(0);
         hook.setPosition(1.0);
         sleep(1000);

@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -39,6 +40,9 @@ public class Mechybois extends OpMode {
     private Servo arm2 = null;
     private Servo hook = null;
 
+    private TouchSensor touch = null;
+    private TouchSensor touch2 = null;
+
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -61,6 +65,11 @@ public class Mechybois extends OpMode {
 
         coll = hardwareMap.get(DcMotor.class, "coll");          // collection motor
         lift = hardwareMap.get(DcMotor.class, "lift");          // lift motor
+
+        lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        touch = hardwareMap.touchSensor.get("touch");
+        touch2 = hardwareMap.touchSensor.get("touch2");
 
         telemetry.addData("Status", "Let's roll.");          // tell the driver we're all set
     }
@@ -98,14 +107,11 @@ public class Mechybois extends OpMode {
 
 
         //liftyboie
-        if(gamepad1.a){         //up
+        if(gamepad1.a && !touch.isPressed()){         //up
             lift.setPower(1);
-        }else
-            lift.setPower(0);
-
-        if(gamepad1.b){         //down
+        } else if(gamepad1.b && !touch2.isPressed()){         //down
            lift.setPower(-1);
-        }else
+        } else
             lift.setPower(0);
        // if(gamepad1.right_trigger > 0.5)
             //coll.setPower(1);
