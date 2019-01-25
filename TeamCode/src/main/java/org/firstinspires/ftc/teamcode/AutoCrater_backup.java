@@ -295,10 +295,10 @@ public class AutoCrater_backup extends LinearOpMode {
 
         while (opModeIsActive() && rf.isBusy()) {
 
-            if(rf.getCurrentPosition() >= ramp) {
+            if(rf.getCurrentPosition() >= ramp*TICKS_PER_TILE/24) {
                 pwr = fpwr;
             } else {
-                pwr = fpwr * rf.getCurrentPosition() / ramp;
+                pwr = fpwr * (rf.getCurrentPosition() + 50) / (ramp*TICKS_PER_TILE/24);
             }
 
             rf.setPower(pwr);

@@ -34,10 +34,10 @@ public class Mechybois extends OpMode {
     private DcMotor rb = null;
 
     private DcMotor coll = null;
-    private DcMotor lift = null; // p2rs
+    private DcMotor coll_lift = null;
+    private DcMotor coll_arm = null;
 
-    private Servo arm1 = null;
-    private Servo arm2 = null;
+    private DcMotor lift = null; // p2rs
     private Servo hook = null;
 
     private TouchSensor touch = null;
@@ -59,11 +59,16 @@ public class Mechybois extends OpMode {
         rf.setDirection(DcMotor.Direction.FORWARD);
         rb.setDirection(DcMotor.Direction.FORWARD);
 
-        arm1 = hardwareMap.get(Servo.class, "arm1");
-        arm2 = hardwareMap.get(Servo.class, "arm2");
-        hook = hardwareMap.get(Servo.class, "hook");
+        rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        coll_arm = hardwareMap.get(DcMotor.class, "coll_arm");
+        coll_lift = hardwareMap.get(DcMotor.class, "coll_lift");
         coll = hardwareMap.get(DcMotor.class, "coll");          // collection motor
+
+        hook = hardwareMap.get(Servo.class, "hook");
         lift = hardwareMap.get(DcMotor.class, "lift");          // lift motor
 
         lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -91,6 +96,14 @@ public class Mechybois extends OpMode {
         float drive = scaleInput(-gamepad1.left_stick_y);
         float strafe = scaleInput(gamepad1.left_stick_x);
         float rotate = scaleInput(gamepad1.right_stick_x);
+
+        telemetry.addData("drive", + drive);
+        telemetry.addData("strafe", + strafe);
+        telemetry.addData("rotate", + rotate);
+
+        if(Math.abs(drive) < 0.05f) drive = 0.0f;
+        if(Math.abs(strafe) < 0.05f) strafe = 0.0f;
+        if(Math.abs(rotate) < 0.05f) rotate = 0.0f;
 
         if(!gamepad1.x) {
             lf.setPower(Range.clip(drive + strafe + rotate, -1.0, 1.0));
@@ -120,13 +133,23 @@ public class Mechybois extends OpMode {
 
         //arm
         if(gamepad1.y || gamepad2.y){
-            arm1.setPosition(1);
-            arm2.setPosition(1);
-
+            coll_arm.setPower(1);
         } else if(gamepad1.x || gamepad2.x){
-            arm1.setPosition(0);
-            arm2.setPosition(0);
-        }
+            coll_arm.setPower(-1);
+        } else { coll_arm.setPower(0); }
+
+        if(gamepad1.dpad_down || gamepad2.dpad_down){
+            coll_lift.setPower(1);
+        } else if(gamepad1.dpad_up || gamepad2.dpad_up){
+            coll_lift.setPower(-1);
+        } else { coll_lift.setPower(0); }
+
+        if(gamepad1.dpad_down || gamepad2.dpad_down){
+            coll.setPower(1);
+        } else if(gamepad1.dpad_up || gamepad2.dpad_up){
+            coll.setPower(-1);
+        } else { coll.setPower(0); }
+
         if(gamepad1.right_bumper || gamepad2.right_bumper){
             hook.setPosition(1);
         }else if (gamepad1.left_bumper || gamepad2.left_bumper){

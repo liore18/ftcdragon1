@@ -296,7 +296,7 @@ public class AutoDepot_backup extends LinearOpMode {
             if(rf.getCurrentPosition() >= ramp) {
                 pwr = fpwr;
             } else {
-                pwr = fpwr * rf.getCurrentPosition() / ramp;
+                pwr = fpwr * (rf.getCurrentPosition() + 50) / (ramp*TICKS_PER_TILE/24);
             }
 
             rf.setPower(pwr);
