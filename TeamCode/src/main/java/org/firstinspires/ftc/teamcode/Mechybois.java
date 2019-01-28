@@ -122,11 +122,13 @@ public class Mechybois extends OpMode {
             rb.setPower(.2*Range.clip(drive + strafe - rotate, -1.0, 1.0));
         }
 
+        float lift2 = scaleInput(gamepad2.left_stick_y);
+
 
         //liftyboie
-        if(gamepad1.a && !touch.isPressed()){         //up
+        if((gamepad2.dpad_up || gamepad1.dpad_up) && !touch.isPressed()){         //up
             lift.setPower(1);
-        } else if(gamepad1.b && !touch2.isPressed()){         //down
+        } else if((gamepad2.dpad_down || gamepad1.dpad_down) && !touch2.isPressed()){         //down
            lift.setPower(-1);
         } else
             lift.setPower(0);
@@ -136,27 +138,27 @@ public class Mechybois extends OpMode {
             //coll.setPower(0);
 
         //arm
-        if(gamepad1.y || gamepad2.y){
+        if(gamepad2.y){
             coll_arm.setPower(1);
-        } else if(gamepad1.x || gamepad2.x){
+        } else if(gamepad2.x){
             coll_arm.setPower(-1);
         } else { coll_arm.setPower(0); }
 
-        if(gamepad1.dpad_up || gamepad2.dpad_up){
-            coll_lift.setPower(1);
-        } else if(gamepad1.dpad_down || gamepad2.dpad_down){
+        if(gamepad2.right_bumper){
+            coll_lift.setPower(lift2);
+        } else if(gamepad2.left_bumper){
             coll_lift.setPower(-1);
         } else { coll_lift.setPower(0); }
 
-        if(gamepad1.dpad_left || gamepad2.dpad_left){
+        if(gamepad2.a){
             coll.setPower(1);
-        } else if(gamepad1.dpad_right || gamepad2.dpad_right){
+        } else if(gamepad2.b){
             coll.setPower(-1);
         } else { coll.setPower(0); }
 
-        if(gamepad1.right_bumper || gamepad2.right_bumper){
+        if(gamepad2.dpad_right || gamepad1.dpad_right){
             hook.setPosition(1);
-        }else if (gamepad1.left_bumper || gamepad2.left_bumper){
+        }else if (gamepad2.dpad_left || gamepad1.dpad_right){
             hook.setPosition(0);
         }
 
