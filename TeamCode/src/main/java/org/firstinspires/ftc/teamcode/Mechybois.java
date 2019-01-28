@@ -138,10 +138,10 @@ public class Mechybois extends OpMode {
             //coll.setPower(0);
 
         //arm
-        if(gamepad2.y){
-            coll_arm.setPower(1);
-        } else if(gamepad2.x){
-            coll_arm.setPower(-1);
+        if(gamepad2.left_stick_y > 0){
+            coll_arm.setPower(gamepad2.left_stick_y);
+        } else if(gamepad2.left_stick_y < 0){
+            coll_arm.setPower(gamepad2.left_stick_y);
         } else { coll_arm.setPower(0); }
 
         if(gamepad2.right_bumper){
