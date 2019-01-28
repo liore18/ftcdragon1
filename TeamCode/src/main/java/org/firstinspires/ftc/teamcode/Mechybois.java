@@ -73,6 +73,10 @@ public class Mechybois extends OpMode {
 
         lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        coll.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        coll_arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        coll_lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         touch = hardwareMap.touchSensor.get("touch");
         touch2 = hardwareMap.touchSensor.get("touch2");
 
@@ -138,15 +142,15 @@ public class Mechybois extends OpMode {
             coll_arm.setPower(-1);
         } else { coll_arm.setPower(0); }
 
-        if(gamepad1.dpad_down || gamepad2.dpad_down){
+        if(gamepad1.dpad_up || gamepad2.dpad_up){
             coll_lift.setPower(1);
-        } else if(gamepad1.dpad_up || gamepad2.dpad_up){
+        } else if(gamepad1.dpad_down || gamepad2.dpad_down){
             coll_lift.setPower(-1);
         } else { coll_lift.setPower(0); }
 
-        if(gamepad1.dpad_down || gamepad2.dpad_down){
+        if(gamepad1.dpad_left || gamepad2.dpad_left){
             coll.setPower(1);
-        } else if(gamepad1.dpad_up || gamepad2.dpad_up){
+        } else if(gamepad1.dpad_right || gamepad2.dpad_right){
             coll.setPower(-1);
         } else { coll.setPower(0); }
 
@@ -163,6 +167,11 @@ public class Mechybois extends OpMode {
         telemetry.addData("rf power", + rf.getPower());
         telemetry.addData("lf power", + lf.getPower());
         telemetry.addData("lb power", + lb.getPower());
+
+        telemetry.addData("rfpos", rf.getCurrentPosition());
+        telemetry.addData("rbpos", rb.getCurrentPosition());
+        telemetry.addData("lfpos", lf.getCurrentPosition());
+        telemetry.addData("lbpos", lb.getCurrentPosition());
 
         //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         telemetry.update();

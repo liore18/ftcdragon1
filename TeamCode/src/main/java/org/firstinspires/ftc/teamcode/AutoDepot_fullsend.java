@@ -8,18 +8,16 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcontroller.external.samples.SensorDigitalTouch;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
-
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.util.List;
 
-@Autonomous(name="Crater", group="Autonomous")
-public class AutoCrater_backup extends LinearOpMode {
+@Autonomous(name="Depot FS", group="Autonomous")
+public class AutoDepot_fullsend extends LinearOpMode {
     //Tfod constants
     private static final String VUFORIA_KEY = "AXDMU6L/////AAABmYsje6g+d0FouarmMJSceCUvoPLsXYHB38V7+MVCV//rzuYmaMR0aeKY+X1gyKROXD2HP/yqTdMoGKjNifE0TLgN3fUlxqF8CAejftyRLJXX7t1xBrivJKRDgDbQrX6I+6xe2ZcfInF2KnfQHOrlMh/i7M4RU6vzkIwKIzCwkV/SaMxAyYWpEngCIK+3ZelwN2uVIc0nXFNEXI2qVTaiAb7ffvbqzCBcxXrxCzbahSso5A/fD9f6FGsyMvVTQUzRaybT473gX+RJ1nPHyqjTscffYVyBGl0sAQ259VwLGwM+FE+ymehKO1shL9s1ITfaZaRdSWxzxvdS/e5xaavoXEw3ylD16GUnclpvw1s/ts7y";
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
@@ -55,18 +53,16 @@ public class AutoCrater_backup extends LinearOpMode {
     private TouchSensor touch = null;
     private TouchSensor touch2 = null;
 
+    private DcMotor coll = null;
+    private DcMotor coll_arm = null;
+    private DcMotor coll_lift = null;
+
     @Override
     public void runOpMode() {
 
         initialize();
 
         //region initialization
-        initVuforia();
-        if (ClassFactory.getInstance().canCreateTFObjectDetector()) {
-            initTfod();
-        } else {
-            telemetry.addData("Sorry!", "This device is not compatible with TFOD");
-        }
 
         reset();
 
@@ -87,114 +83,17 @@ public class AutoCrater_backup extends LinearOpMode {
         telemetry.update();
         //endregion
 
-        /**          PUT ALL THE CODE HERE
-        *  use drive(distance, power) to move forward or backward (distance is in field tiles)
-        *  use pivot(angle, power) to turn while stopped
-        **/
+
 
         lift();
-        drive(0.25,.5);   // move 6 inches forward
+        // now more code
 
-        int gpos = 0;
-
-        //region tfod
-        if (opModeIsActive()) {
-            /** Activate Tensor Flow Object Detection. */
-            if (tfod != null) {
-                tfod.activate();
-            }
-
-            while (opModeIsActive()) {
-                if (tfod != null) {
-                    // getUpdatedRecognitions() will return null if no new information is available since
-                    // the last time that call was made.
-                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                    if (updatedRecognitions != null) {
-                        telemetry.addData("# Object Detected", updatedRecognitions.size());
-                        if (updatedRecognitions.size() == 3) {
-                            int goldMineralX = -1;
-                            int silverMineral1X = -1;
-                            int silverMineral2X = -1;
-                            for (Recognition recognition : updatedRecognitions) {
-                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                                    goldMineralX = (int) recognition.getLeft();
-                                } else if (silverMineral1X == -1) {
-                                    silverMineral1X = (int) recognition.getLeft();
-                                } else {
-                                    silverMineral2X = (int) recognition.getLeft();
-                                }
-                            }
-                            if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
-                                if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
-                                    gpos = 0;
-                                } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
-                                    gpos = 2;
-                                } else {
-                                    gpos = 1;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (tfod != null) {
-            tfod.shutdown();
-        }
-        //endregion
-
-        if(gpos == 1) {
-            drive(0.5 * 1.41, 0.5);
-            drive(-0.5 * 1.41, 0.5);
-            pivot(-90, 0.5);
-            drive(1.5 * 1.41, 0.5);
-            pivot(-45, 0.5);
-        }
-        if(gpos == 0) {
-            pivot(-45, 0.5);
-            drive(1, 0.5);
-            drive(-1, 0.5);
-            pivot(-45, 0.5);
-            drive(1.5 * 1.41, 0.5);
-            pivot(-45, 0.5);
-        }
-        if(gpos == 2) {
-            pivot(45, 0.5);
-            drive(1, 0.5);
-            drive(-1, 0.5);
-            pivot(-135, 0.5);
-            drive(1.5 * 1.41, 0.5);
-            pivot(-45, 0.5);
-        }
-
-        drive(3,0.7);    // drive towards depot
+        drive(1,0.7);    // drive towards depot
+        pivot(180, 0.7);
         dropmarker();
-        drive(-5,1);
+        pivot(-90,0.7);
+        drive(-1.5,1);
         halt();
-    }
-
-    private void initVuforia() {
-        /*
-         * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
-         */
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-
-        parameters.vuforiaLicenseKey = VUFORIA_KEY;
-        parameters.cameraDirection = CameraDirection.BACK;
-
-        //  Instantiate the Vuforia engine
-        vuforia = ClassFactory.getInstance().createVuforia(parameters);
-
-        // Loading trackables is not necessary for the Tensor Flow Object Detection engine.
-    }
-
-    private void initTfod() {
-        int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
-                "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
-        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
-        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
     }
 
     private void initialize() {
@@ -221,6 +120,10 @@ public class AutoCrater_backup extends LinearOpMode {
 
         touch = hardwareMap.touchSensor.get("touch");
         touch2 = hardwareMap.touchSensor.get("touch2");
+
+        coll_lift = hardwareMap.get(DcMotor.class,"coll_lift");
+        coll_arm = hardwareMap.get(DcMotor.class,"coll_arm");
+        coll = hardwareMap.get(DcMotor.class, "coll");
 
         hook.setPosition(0.0);
         sleep(1000);
@@ -273,8 +176,8 @@ public class AutoCrater_backup extends LinearOpMode {
             telemetry.addData("lbpow", lb.getPower());
             telemetry.update();
         }
-        reset();
         halt();
+        reset();
     }
 
     /**
@@ -415,8 +318,27 @@ public class AutoCrater_backup extends LinearOpMode {
         halt();
     }
 
-    private void dropmarker() {
+    private void dropmarker(){
+        coll_arm.setPower(1);
+        sleep(1200);
+        coll_arm.setPower(0);
+        sleep(1000);
 
+
+        coll.setPower(-1);
+        sleep(1000);
+        coll.setPower(0);
+
+        coll_arm.setPower(-1);
+        sleep(2000);
+        coll_arm.setPower(0);
+    }
+
+    private void floparm(){
+        coll_arm.setPower(1);
+        sleep(1200);
+        coll_arm.setPower(0);
+        sleep(1000);
     }
 
     private void lift() {
