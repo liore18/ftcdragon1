@@ -158,7 +158,7 @@ public class Mechybois extends OpMode {
 
         if(gamepad2.dpad_right || gamepad1.dpad_right){
             hook.setPosition(1);
-        }else if (gamepad2.dpad_left || gamepad1.dpad_right){
+        }else if (gamepad2.dpad_left || gamepad1.dpad_left){
             hook.setPosition(0);
         }
 
