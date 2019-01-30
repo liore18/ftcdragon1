@@ -74,6 +74,4 @@ public class GyroTest extends LinearOpMode {
         telemetry.update();
 
     }
-
-    }
-
+}
