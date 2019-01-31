@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -9,6 +11,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
@@ -29,6 +34,8 @@ public class MasterAuto extends LinearOpMode {
     static final double TICKS_PER_TILE = TICKS_PER_INCH * 24;
     static final double WHEEL_SPAN = 10.86614; // bad units
 
+
+    BNO055IMU gyro;
     // variables.
 
     public VuforiaLocalizer vuforia;
@@ -86,6 +93,19 @@ public class MasterAuto extends LinearOpMode {
         coll = hardwareMap.get(DcMotor.class, "coll");
 
         hook.setPosition(0.0);
+
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+
+        parameters.mode = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "gyro";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+
+        gyro = hardwareMap.get(BNO055IMU.class, "gyro");
+        gyro.initialize(parameters);
+
         sleep(1000);
     }
 
@@ -310,5 +330,55 @@ public class MasterAuto extends LinearOpMode {
         lift.setPower(0);
         hook.setPosition(1.0);
         sleep(1000);
+    }
+
+    public void driveAC(double distance, double pwr) {
+        reset();
+        int target = (int) (distance * TICKS_PER_TILE);
+
+        float urgency = 0.05f; // remember that we may end up more than 10 degrees off course.
+
+        pwr = Math.abs(pwr);
+
+        float initial = gg();
+        float current;
+
+        rf.setTargetPosition(target);
+        rb.setTargetPosition(target);
+        lf.setTargetPosition(target);
+        lb.setTargetPosition(target);
+
+        while (opModeIsActive() && rf.isBusy()) {
+            //region telemetry
+            telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());
+
+            telemetry.addData("rfpow", rf.getPower());
+            telemetry.addData("rbpow", rb.getPower());
+            telemetry.addData("lfpow", lf.getPower());
+            telemetry.addData("lbpow", lb.getPower());
+            telemetry.update();
+            //endregion
+
+            current = gg();
+            float d = initial - current;
+
+            rf.setPower(pwr - d * urgency);
+            rb.setPower(pwr - d * urgency);
+            lf.setPower(pwr + d * urgency);
+            lb.setPower(pwr + d * urgency);
+        }
+        halt();
+        reset();
+    }
+
+    public float gg() {
+        float gyroAngle = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+        telemetry.addData("angle ", gyroAngle);
+        telemetry.update();
+
+        return gyroAngle;
     }
 }

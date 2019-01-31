@@ -42,36 +42,20 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefau
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 @Autonomous(name="gyro", group="Autonomous")
-public class GyroTest extends LinearOpMode {
-
-    BNO055IMU gyro;
-
-    //variables for angle adjustment
-    public int targetAngle = 0;
-    private int adjustedAngle;
-    Orientation angles;
-    int gyroAngle;
+public class GyroTest extends MasterAuto {
 
     private ElapsedTime runtime = new ElapsedTime();
 
     @Override
     public void runOpMode() {
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
-        parameters.mode = BNO055IMU.SensorMode.IMU;
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "gyro";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        initialize();
+        reset();
 
-        gyro = hardwareMap.get(BNO055IMU.class, "gyro");
-        gyro.initialize(parameters);
+        waitForStart();
 
-        gyroAngle = -(int) gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+        driveAC(3, 0.15);
 
-        telemetry.addData("angle ", gyroAngle);
-        telemetry.update();
-
+        halt();
     }
 }
