@@ -331,6 +331,39 @@ public class MasterAuto extends LinearOpMode {
         hook.setPosition(1.0);
         sleep(1000);
     }
+    public void strafe (double distance, double power) {
+        resetEncoders();
+        distance = ENCODER_CPR * ROTATE * distance;
+
+        //motors in the direction of motion go inwards in mechanum drive, opposite wheels go outward.
+        motorRF.setTargetPosition((int) -distance);
+        motorRB.setTargetPosition((int) distance);
+        motorLF.setTargetPosition((int) distance);
+        motorLB.setTargetPosition((int) -distance);
+
+        //runs until distance is reached
+        motorRF.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorRB.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorLF.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorLB.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        motorRF.setPower(power);
+        motorRB.setPower(power);
+        motorLF.setPower(power);
+        motorLB.setPower(power);
+
+        //auto corrects based on distance from correct target angle
+        while (opModeIsActive() && (Math.abs(motorLB.getCurrentPosition())<=Math.abs(distance)-10 || Math.abs(motorRF.getCurrentPosition())<=Math.abs(distance)-10 ||
+                Math.abs(motorLF.getCurrentPosition())<=Math.abs(distance)-10 || Math.abs(motorRB.getCurrentPosition())<=Math.abs(distance)-10)) {
+
+            gyroAngle = -(int)gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+            autoCorrect(power,false);
+
+        }
+
+        stopMotors();
+
+    }
 
     public void driveAC(double distance, double pwr) {
         reset();
