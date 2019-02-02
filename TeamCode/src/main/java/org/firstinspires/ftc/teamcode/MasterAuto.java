@@ -331,38 +331,49 @@ public class MasterAuto extends LinearOpMode {
         hook.setPosition(1.0);
         sleep(1000);
     }
-    public void strafe (double distance, double power) {
-        resetEncoders();
-        distance = ENCODER_CPR * ROTATE * distance;
 
-        //motors in the direction of motion go inwards in mechanum drive, opposite wheels go outward.
-        motorRF.setTargetPosition((int) -distance);
-        motorRB.setTargetPosition((int) distance);
-        motorLF.setTargetPosition((int) distance);
-        motorLB.setTargetPosition((int) -distance);
+    public void strafeAC (double distance, double pwr) {
+        reset();
+        int target = (int) (distance * TICKS_PER_TILE);
 
-        //runs until distance is reached
-        motorRF.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorRB.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorLF.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        motorLB.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        float urgency = 0.05f; // remember that we may end up more than 10 degrees off course.
 
-        motorRF.setPower(power);
-        motorRB.setPower(power);
-        motorLF.setPower(power);
-        motorLB.setPower(power);
+        pwr = Math.abs(pwr);
 
-        //auto corrects based on distance from correct target angle
-        while (opModeIsActive() && (Math.abs(motorLB.getCurrentPosition())<=Math.abs(distance)-10 || Math.abs(motorRF.getCurrentPosition())<=Math.abs(distance)-10 ||
-                Math.abs(motorLF.getCurrentPosition())<=Math.abs(distance)-10 || Math.abs(motorRB.getCurrentPosition())<=Math.abs(distance)-10)) {
+        float initial = gg();
+        float current;
 
-            gyroAngle = -(int)gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-            autoCorrect(power,false);
+        rf.setTargetPosition(target);
+        rb.setTargetPosition(target);
+        lf.setTargetPosition(target);
+        lb.setTargetPosition(target);
 
+        while (opModeIsActive() && rf.isBusy()) {
+            current = gg();
+            float d = initial - current;
+
+            rf.setPower(-(pwr + d * urgency * pwr));
+            rb.setPower(pwr + d * urgency * pwr);
+            lf.setPower(pwr - d * urgency * pwr);
+            lb.setPower(-(pwr - d * urgency * pwr));
+
+            //region telemetry
+            /*telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());*/
+
+            telemetry.addData("R pwr", rf.getPower());
+            telemetry.addData("L pwr", lf.getPower());
+
+            telemetry.addData("d", d);
+            telemetry.addData("p", d * urgency);
+
+            telemetry.update();
+            //endregion
         }
-
-        stopMotors();
-
+        halt();
+        reset();
     }
 
     public void driveAC(double distance, double pwr) {
@@ -382,36 +393,80 @@ public class MasterAuto extends LinearOpMode {
         lb.setTargetPosition(target);
 
         while (opModeIsActive() && rf.isBusy()) {
-            //region telemetry
-            telemetry.addData("rfpos", rf.getCurrentPosition());
-            telemetry.addData("rbpos", rb.getCurrentPosition());
-            telemetry.addData("lfpos", lf.getCurrentPosition());
-            telemetry.addData("lbpos", lb.getCurrentPosition());
-
-            telemetry.addData("rfpow", rf.getPower());
-            telemetry.addData("rbpow", rb.getPower());
-            telemetry.addData("lfpow", lf.getPower());
-            telemetry.addData("lbpow", lb.getPower());
-            telemetry.update();
-            //endregion
-
             current = gg();
             float d = initial - current;
 
-            rf.setPower(pwr - d * urgency);
-            rb.setPower(pwr - d * urgency);
-            lf.setPower(pwr + d * urgency);
-            lb.setPower(pwr + d * urgency);
+            rf.setPower(pwr + d * urgency * pwr);
+            rb.setPower(pwr + d * urgency * pwr);
+            lf.setPower(pwr - d * urgency * pwr);
+            lb.setPower(pwr - d * urgency * pwr);
+
+            //region telemetry
+            /*telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());*/
+
+            telemetry.addData("R pwr", rf.getPower());
+            telemetry.addData("L pwr", lf.getPower());
+
+            telemetry.addData("d", d);
+            telemetry.addData("p", d * urgency);
+
+            telemetry.update();
+            //endregion
         }
         halt();
         reset();
     }
 
-    public float gg() {
-        float gyroAngle = gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-        telemetry.addData("angle ", gyroAngle);
-        telemetry.update();
+    public void turnAC (int angle, double pwr) {
+        reset();
 
+        pwr = Math.abs(pwr);
+
+        int tolerance = 15;
+
+        int target = gg() + angle;
+        int current = gg();
+
+        sleep(500);
+
+        rf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        int sign = angle / Math.abs(angle);
+
+        rf.setPower(sign * pwr);
+        rb.setPower(sign * pwr);
+        lf.setPower(-sign * pwr);
+        lb.setPower(-sign * pwr);
+
+        while (opModeIsActive() && Math.abs(target - current) > tolerance*pwr + 5) {
+            current = gg();
+
+            //region telemetry
+
+            telemetry.addData("target", target);
+            telemetry.addData("current", current);
+            telemetry.addData("sign", sign);
+            telemetry.addData("delta", Math.abs(target - current));
+            telemetry.addData("tolerance", tolerance);
+
+
+            telemetry.update();
+            //endregion
+        }
+        halt();
+    }
+
+    /**
+     * @return the current gyro reading as an int from 0 to 360 degrees
+     */
+    public int gg() {
+        int gyroAngle = (int)gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
         return gyroAngle;
     }
 }

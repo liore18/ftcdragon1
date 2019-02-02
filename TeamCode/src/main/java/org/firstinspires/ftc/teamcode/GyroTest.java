@@ -54,7 +54,15 @@ public class GyroTest extends MasterAuto {
 
         waitForStart();
 
-        driveAC(3, 0.15);
+        driveAC(10, 0);
+        /*turnAC(90, 0.15);
+        sleep(1000);
+        turnAC(-90, .15);
+        sleep(1000);
+        turnAC(180, .15);
+        sleep(1000);
+        turnAC(-180, .15);
+        sleep(1000);*/
 
         halt();
     }
