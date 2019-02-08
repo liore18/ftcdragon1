@@ -7,6 +7,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.I2cDevice;
@@ -46,6 +47,8 @@ public class GyroTest extends MasterAuto {
 
     private ElapsedTime runtime = new ElapsedTime();
 
+    private CRServo beans = null;
+
     @Override
     public void runOpMode() {
 
@@ -54,7 +57,12 @@ public class GyroTest extends MasterAuto {
 
         waitForStart();
 
-        driveAC(10, 0);
+        beans = hardwareMap.get(CRServo.class, "beans");
+
+
+        turnAC(1,1);
+
+        beans.setPower(1);
         /*turnAC(90, 0.15);
         sleep(1000);
         turnAC(-90, .15);
@@ -63,6 +71,8 @@ public class GyroTest extends MasterAuto {
         sleep(1000);
         turnAC(-180, .15);
         sleep(1000);*/
+
+        sleep(1000000);
 
         halt();
     }
