@@ -22,7 +22,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import java.util.List;
 
 @Disabled
-@Autonomous(name="mAuto", group="Autonomous")
+@Autonomous(name="master", group="Autonomous")
 public class MasterAuto extends LinearOpMode {
     //Tfod constants
     //region key
