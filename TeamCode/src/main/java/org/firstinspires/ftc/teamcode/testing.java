@@ -43,13 +43,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
-@Disabled
 @Autonomous(name="testing", group="Autonomous")
 public class testing extends MasterAuto {
 
     private ElapsedTime runtime = new ElapsedTime();
 
-    private CRServo beans = null;
+    private Servo drop = null;
 
     @Override
     public void runOpMode() {
@@ -59,12 +58,18 @@ public class testing extends MasterAuto {
 
         waitForStart();
 
-        beans = hardwareMap.get(CRServo.class, "beans");
+        drop = hardwareMap.get(Servo.class, "drop");
 
+        drop.setPosition(1);
 
-        turnAC(1,1);
+        dropmarker();
 
-        beans.setPower(1);
+        drop.setPosition(0);
+
+        dropmarker();
+
+        sleep(10000);
+
         /*turnAC(90, 0.15);
         sleep(1000);
         turnAC(-90, .15);
@@ -73,8 +78,6 @@ public class testing extends MasterAuto {
         sleep(1000);
         turnAC(-180, .15);
         sleep(1000);*/
-
-        sleep(1000000);
 
         halt();
     }

@@ -7,18 +7,17 @@ public class Depot extends MasterAuto {
 
     static double INITIAL_D = 0.5;                          // after we drop, we move this far fwd
 
+    static int ANGLE_SAMPLE = 22;
+
     static int ANGLE_GOLD = 45;                             // rotate this much to face gold
 
     static double STRT_GOLD_D = 0.5 * Math.sqrt(2);         // go this far to hit gold
     static double DIAG_GOLD_D = 1;                          // then go back the same distance
 
-    static int ANGLE_WALL = 90;                             // face here relative to start
+    static int ANGLE_WALL = 70;                             // face here relative to start
                                                             // before going to wall
 
-    static double LANDR_TO_WALL_D = 1.5 * Math.sqrt(2);     // drive this far from sample site
-    static double WALL_TO_DEPOT_D = 1;                      // drive this far straight to depot
-
-    static int ANGLE_DEPOT = 0;                             // rotate this much before marker drop
+    static double LANDR_TO_WALL_D = 1.5 * Math.sqrt(2) - 0.5;     // drive this far from sample site
 
     static double WALL_TO_CRATR_D = 3;                      // drive this far straight to crater
 
@@ -53,10 +52,9 @@ public class Depot extends MasterAuto {
         lift();
         // now more code
 
+        int gpos = tfod2(5);
+
         driveAC(INITIAL_D, 0.25);
-
-        int gpos = tfod(5);
-
 
         if(gpos == 2) { // RIGHT DIAGONAL
             turnAC(-ANGLE_GOLD, 0.25);

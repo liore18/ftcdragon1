@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -40,6 +41,7 @@ public class MasterAuto extends LinearOpMode {
     static final double TICKS_PER_TILE = TICKS_PER_INCH * 24;
     static final double WHEEL_SPAN = 10.86614; // bad units
 
+    WebcamName webcamName;
 
     BNO055IMU gyro;
     // variables.
@@ -63,6 +65,8 @@ public class MasterAuto extends LinearOpMode {
     public DcMotor coll = null;
     public DcMotor coll_arm = null;
     public DcMotor coll_lift = null;
+
+    public Servo drop = null;
 
     public void runOpMode() {}
 
@@ -95,6 +99,8 @@ public class MasterAuto extends LinearOpMode {
         coll_arm = hardwareMap.get(DcMotor.class, "coll_arm");
         coll = hardwareMap.get(DcMotor.class, "coll");  // get collection devices
 
+        drop = hardwareMap.get(Servo.class, "drop");    // get marker dropper
+
         hook.setPosition(0.0);                                      // close hook
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -119,6 +125,8 @@ public class MasterAuto extends LinearOpMode {
     }
 
     private void initVuforia() {
+
+        webcamName = hardwareMap.get(WebcamName.class, "logi");
         /*
          * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
          */
@@ -126,6 +134,7 @@ public class MasterAuto extends LinearOpMode {
 
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+        parameters.cameraName = webcamName;
 
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
@@ -331,19 +340,12 @@ public class MasterAuto extends LinearOpMode {
     }
 
     void dropmarker() {
-        coll_arm.setPower(1);
-        sleep(1200);
-        coll_arm.setPower(0);
-        sleep(1000);
+        drop.setPosition(1.0);
 
-
-        coll.setPower(-1);
-        sleep(1000);
-        coll.setPower(0);
-
-        coll_arm.setPower(-1);
-        sleep(2000);
-        coll_arm.setPower(0);
+        driveAC(-0.1, 1);
+        driveAC(0.1, 1);
+        driveAC(-0.1, 1);
+        driveAC(0.1, 1);
     }
 
     void floparm() {
@@ -457,6 +459,10 @@ public class MasterAuto extends LinearOpMode {
     void turnAC (int angle, double pwr) {
         reset();
 
+        if(angle == 0) {
+            return;
+        }
+
         pwr = Math.abs(pwr);
 
         int tolerance = 15;
@@ -489,6 +495,59 @@ public class MasterAuto extends LinearOpMode {
             telemetry.addData("delta", Math.abs(target - current));
             telemetry.addData("tolerance", tolerance);
 
+
+            telemetry.update();
+            //endregion
+        }
+        halt();
+    }
+
+    void turnAC2 (int angle, double pwr) {
+        reset();
+
+        int initialangle = gg();
+
+        if(angle == 0) {
+            return;
+        }
+
+        pwr = Math.abs(pwr);
+
+        int tolerance = 15;
+
+        int target = gg() + angle;
+        int current = gg();
+
+        sleep(500);
+
+        rf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        int sign = angle / Math.abs(angle);
+
+        rf.setPower(sign * pwr);
+        rb.setPower(sign * pwr);
+        lf.setPower(-sign * pwr);
+        lb.setPower(-sign * pwr);
+
+        while (opModeIsActive() && Math.abs(target - current) > tolerance*pwr + 5) {
+            current = gg();
+
+            rf.setPower(sign * pwr * ( Math.abs(target - current) / angle) + .025);
+            rb.setPower(sign * pwr * ( Math.abs(target - current) / angle) + .025);
+            lf.setPower(-sign * pwr * ( Math.abs(target - current) / angle) + .025);
+            lb.setPower(-sign * pwr * ( Math.abs(target - current) / angle) + .025);
+
+
+            //region telemetry
+
+            telemetry.addData("target", target);
+            telemetry.addData("current", current);
+            telemetry.addData("sign", sign);
+            telemetry.addData("delta", Math.abs(target - current));
+            telemetry.addData("tolerance", tolerance);
 
             telemetry.update();
             //endregion
@@ -544,6 +603,58 @@ public class MasterAuto extends LinearOpMode {
                                 } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
                                     return 2;
                                 } else {
+                                    return 1;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (tfod != null) {
+            tfod.shutdown();
+        }
+        return 1;
+    }
+
+    int tfod2(int timeout) {    // This requires that we rotate to the right
+        if (opModeIsActive()) {
+            /** Activate Tensor Flow Object Detection. */
+            if (tfod != null) {
+                tfod.activate();
+            }
+
+            runtime.reset();
+
+            while (opModeIsActive() && runtime.seconds() < timeout) {
+
+                if (tfod != null) {
+                    // getUpdatedRecognitions() will return null if no new information is available since
+                    // the last time that call was made.
+                    List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
+                    if (updatedRecognitions != null) {
+                        telemetry.addData("# Object Detected", updatedRecognitions.size());
+                        if (updatedRecognitions.size() == 2) {
+                            int goldMineralX = -1;
+                            int silverMineral1X = -1;
+                            int silverMineral2X = -1;
+                            for (Recognition recognition : updatedRecognitions) {
+                                if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+                                    goldMineralX = (int) recognition.getLeft();
+                                } else if (silverMineral1X == -1) {
+                                    silverMineral1X = (int) recognition.getLeft();
+                                } else {
+                                    silverMineral2X = (int) recognition.getLeft();
+                                }
+                            }
+                            if(goldMineralX == -1) { // we've found the two silvers
+                                return 0;
+                            }
+                            if(silverMineral2X == -1) { // one of the things we see is the gold one
+                                if(goldMineralX > silverMineral1X) {
+                                    return 2;
+                                } else if(goldMineralX < silverMineral1X) {
                                     return 1;
                                 }
                             }
