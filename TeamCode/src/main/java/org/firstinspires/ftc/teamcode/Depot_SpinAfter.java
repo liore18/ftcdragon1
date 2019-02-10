@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
-@Autonomous(name="Depot", group="Autonomous")       // this file super is not depot
-public class Depot extends MasterAuto {
+@Disabled
+@Autonomous(name="Depot Spin After", group="Autonomous")       // this file super is not depot
+public class Depot_SpinAfter extends MasterAuto {
 
     static double INITIAL_D = 0.5;                          // after we drop, we move this far fwd
 
@@ -11,7 +13,7 @@ public class Depot extends MasterAuto {
 
     static int ANGLE_GOLD = 45;                             // rotate this much to face gold
 
-    static double STRT_GOLD_D = 0.8 * Math.sqrt(2);         // go this far to hit gold
+    static double STRT_GOLD_D = 1 * Math.sqrt(2);         // go this far to hit gold
     static double DIAG_GOLD_D = 1;                          // then go back the same distance
 
     static int ANGLE_WALL = 70;                             // face here relative to start
@@ -52,101 +54,53 @@ public class Depot extends MasterAuto {
         lift();
         // now more code
 
+
         int gpos = tfod2(5);
 
         driveAC(INITIAL_D, 0.25);
 
+
         if(gpos == 2) { // RIGHT DIAGONAL
-            turnAC(180 - ANGLE_GOLD, 0.25);
+            turnAC(-ANGLE_GOLD, 0.25);
             // turn to face the gold
 
-            driveAC(-DIAG_GOLD_D, 0.25);
+            driveAC(DIAG_GOLD_D, 0.25);
             // gold has been hit
 
-            turnAC(ANGLE_GOLD, 0.25);
-            // turn to face the depot
-
             driveAC(-DIAG_GOLD_D, 0.25);
-            // we're at the depot
+            // we're back where we started, facing the blue wall
 
+            turnAC(-90, 0.25);
+            // our back is to the depot
+
+            driveAC(-2, 0.25);
             deploy();
-
-            /*driveAC(-DIAG_GOLD_D, 0.25);
-            // take a step back
-
-            turnAC(-ANGLE_GOLD, 0.25);
-            // turn back to lander
-
-            driveAC(-DIAG_GOLD_D, 0.25);
-            // we're at the lander
-
-            turnAC(ANGLE_GOLD - ANGLE_WALL, 0.25);
-            // we're facing along the lander
-
-            driveAC(LANDR_TO_WALL_D, 0.5);
-            // we're at the wall, facing it at 45 degrees
-
-            turnAC(135 - ANGLE_WALL, 0.25);
-            // we're at the wall, facing the crater*/
+            driveAC(2, 0.25);
         }
         if(gpos == 1) { // MIDDLE
-            turnAC(-180,0.25);
-
-            driveAC(-STRT_GOLD_D, 0.25);
+            driveAC(STRT_GOLD_D, 0.25);
             // gold has been hit
-
-            driveAC(-STRT_GOLD_D, 0.25);
-            // go to depot
-
-            deploy();
-
-            /*driveAC(-STRT_GOLD_D, 0.25);
-            // back a step
 
             driveAC(-STRT_GOLD_D, 0.25);
             // we're back where we started, facing the corner
 
-            turnAC(ANGLE_GOLD - ANGLE_WALL, 0.25);
-            // we're facing along the lander
-
-            driveAC(LANDR_TO_WALL_D, 0.5);
-            // we're at the wall, facing it at 45 degrees
-
-            turnAC(135 - ANGLE_WALL, 0.25);
-            // we're at the wall, facing the crater*/
         }
         if(gpos == 0) { // LEFT DIAGONAL
-            turnAC(-180 + ANGLE_GOLD, 0.25);
+            turnAC(ANGLE_GOLD, 0.25);
             // turn to face the gold
 
-            driveAC(-DIAG_GOLD_D, 0.25);
+            driveAC(DIAG_GOLD_D, 0.25);
             // gold has been hit
 
-            turnAC(-ANGLE_GOLD, 0.25);
-            // turn to face the depot
-
             driveAC(-DIAG_GOLD_D, 0.25);
-            // we're at the depot
+            // we're back where we started, facing the red wall
 
+            turnAC(90, 0.25);
+            // our back is to the depot
+
+            driveAC(-2, 0.25);
             deploy();
-
-            /*driveAC(-DIAG_GOLD_D, 0.25);
-            // take a step back
-
-            turnAC(ANGLE_GOLD, 0.25);
-            // turn back to lander
-
-            driveAC(-DIAG_GOLD_D, 0.25);
-            // we're at the lander
-
-            turnAC(-ANGLE_GOLD - ANGLE_WALL, 0.25);
-            // we're facing along the lander
-
-            driveAC(LANDR_TO_WALL_D, 0.5);
-            // we're at the wall, facing it at 45 degrees
-
-            turnAC(135 - ANGLE_WALL, 0.25);
-            // we're at the wall, facing the crater*/
+            driveAC(2, 0.25);
         }
 
         /*driveAC(WALL_TO_CRATR_D,1);

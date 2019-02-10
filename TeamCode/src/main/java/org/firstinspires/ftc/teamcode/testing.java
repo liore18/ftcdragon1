@@ -58,15 +58,12 @@ public class testing extends MasterAuto {
 
         waitForStart();
 
-        drop = hardwareMap.get(Servo.class, "drop");
-
-        drop.setPosition(1);
+        turnAC(-180,0.25);
 
         dropmarker();
 
-        drop.setPosition(0);
-
-        dropmarker();
+        turnAC(30,.25);
+        turnAC(-30,.25);
 
         sleep(10000);
 
