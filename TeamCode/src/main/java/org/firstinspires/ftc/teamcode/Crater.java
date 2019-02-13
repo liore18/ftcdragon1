@@ -130,7 +130,7 @@ public class Crater extends MasterAuto {
             // we're at the wall, facing the depot
         }
 
-        strafeAC(1, -0.7);  // STRAFE TOWARDS WALL
+        alignWall(3);  // STRAFE UNTIL WALL
 
         driveAC(-WALL_TO_DEPOT_D,0.7);
 

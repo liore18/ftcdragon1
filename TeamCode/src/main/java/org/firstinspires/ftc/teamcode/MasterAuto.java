@@ -62,6 +62,9 @@ public class MasterAuto extends LinearOpMode {
     public TouchSensor touch = null;
     public TouchSensor touch2 = null;
 
+    public TouchSensor sidef = null;
+    public TouchSensor sideb = null;
+
     public DcMotor coll = null;
     public DcMotor coll_arm = null;
     public DcMotor coll_lift = null;
@@ -94,6 +97,9 @@ public class MasterAuto extends LinearOpMode {
 
         touch = hardwareMap.touchSensor.get("touch");
         touch2 = hardwareMap.touchSensor.get("touch2");             // get lift sensors
+
+        //sidef = hardwareMap.touchSensor.get("sidef");
+        //sideb = hardwareMap.touchSensor.get("sideb");             // get wall alignment sensors
 
         coll_lift = hardwareMap.get(DcMotor.class, "coll_lift");
         coll_arm = hardwareMap.get(DcMotor.class, "coll_arm");
@@ -691,5 +697,51 @@ public class MasterAuto extends LinearOpMode {
             tfod.shutdown();
         }
         return 1;
+    }
+
+    void alignWall(int timeout) {
+        reset();
+        runtime.reset();
+
+        double pwr = -0.7;
+
+        float urgency = 0.15f; // remember that we may end up more than 10 degrees off course.
+
+        float initial = gg();
+        float current;
+
+        rf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        while (opModeIsActive() && !(sidef.isPressed() && sideb.isPressed()) && runtime.seconds() < timeout) {
+            current = gg();
+            float d = initial - current;
+
+            rf.setPower(pwr - d * urgency * pwr);
+            rb.setPower(pwr + d * urgency * pwr);
+            lf.setPower(pwr - d * urgency * pwr);
+            lb.setPower(pwr + d * urgency * pwr);
+
+            //region telemetry
+            /*telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());*/
+
+            telemetry.addData("R f pwr", rf.getPower());
+            telemetry.addData("R b pwr", rb.getPower());
+            telemetry.addData("L f pwr", lf.getPower());
+            telemetry.addData("L b pwr", lb.getPower());
+
+            telemetry.addData("d", d);
+            telemetry.addData("p", d * urgency);
+
+            telemetry.update();
+            //endregion
+        }
+        halt();
+        reset();
     }
 }

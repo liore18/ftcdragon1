@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -8,6 +10,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -43,6 +49,13 @@ public class Mechybois extends OpMode {
     private TouchSensor touch = null;
     private TouchSensor touch2 = null;
 
+    private TouchSensor ltouch = null;
+
+    BNO055IMU gyro;
+
+    boolean latchassist = false;
+    int lockval = 0;
+    float urgency = 0.05f;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -80,6 +93,19 @@ public class Mechybois extends OpMode {
         touch = hardwareMap.touchSensor.get("touch");
         touch2 = hardwareMap.touchSensor.get("touch2");
 
+        ltouch = hardwareMap.touchSensor.get("ltouch");
+
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.mode = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "gyro";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+
+        gyro = hardwareMap.get(BNO055IMU.class, "gyro");
+        gyro.initialize(parameters);                                // get and set up gyro
+
         telemetry.addData("Status", "Let's roll.");          // tell the driver we're all set
     }
 
@@ -95,8 +121,28 @@ public class Mechybois extends OpMode {
     @Override
     public void loop() {
 
-        coll.setPower(gamepad1.right_trigger);
+        //region latch assist
+        if(gamepad1.left_stick_button) {
+            lockval = gg();
+            latchassist = true;
+        } else if(gamepad1.right_stick_button) {
+            latchassist = false;
+        }
 
+        float AC;
+        float con;
+        if(latchassist) {
+            if(!ltouch.isPressed()) con = -0.5f; else con = 0;
+            int current = gg();
+            float d = lockval - current;
+            AC = d * urgency;
+        } else {
+            con = 0;
+            AC = 0;
+        }
+        //endregion
+
+        //region drivetrain power
         float drive = scaleInput(-gamepad1.left_stick_y);
         float strafe = scaleInput(gamepad1.left_stick_x);
         float rotate = scaleInput(gamepad1.right_stick_x);
@@ -110,19 +156,20 @@ public class Mechybois extends OpMode {
         if(Math.abs(rotate) < 0.05f) rotate = 0.0f;
 
         if(!gamepad1.x) {
-            lf.setPower(Range.clip(drive + strafe + rotate, -1.0, 1.0));
-            lb.setPower(Range.clip(drive - strafe + rotate, -1.0, 1.0));
-            rf.setPower(Range.clip(drive - strafe - rotate, -1.0, 1.0));
-            rb.setPower(Range.clip(drive + strafe - rotate, -1.0, 1.0));
+            lf.setPower(Range.clip(drive + strafe + rotate - AC + con, -1.0, 1.0));
+            lb.setPower(Range.clip(drive - strafe + rotate - AC + con, -1.0, 1.0));
+            rf.setPower(Range.clip(drive - strafe - rotate + AC + con, -1.0, 1.0));
+            rb.setPower(Range.clip(drive + strafe - rotate + AC + con, -1.0, 1.0));
         }
         else{
-            lf.setPower(.2*Range.clip(drive + strafe + rotate, -1.0, 1.0));
-            lb.setPower(.2*Range.clip(drive - strafe + rotate, -1.0, 1.0));
-            rf.setPower(.2*Range.clip(drive - strafe - rotate, -1.0, 1.0));
-            rb.setPower(.2*Range.clip(drive + strafe - rotate, -1.0, 1.0));
+            lf.setPower(.2*Range.clip(drive + strafe + rotate - AC + con, -1.0, 1.0));
+            lb.setPower(.2*Range.clip(drive - strafe + rotate - AC + con, -1.0, 1.0));
+            rf.setPower(.2*Range.clip(drive - strafe - rotate + AC + con, -1.0, 1.0));
+            rb.setPower(.2*Range.clip(drive + strafe - rotate + AC + con, -1.0, 1.0));
         }
+        //endregion
 
-        //liftyboie
+        //region lift
         if((gamepad2.dpad_up || gamepad1.dpad_up) && !touch.isPressed()){         //up
             lift.setPower(1);
         } else if((gamepad2.dpad_down || gamepad1.dpad_down) && !touch2.isPressed()){         //down
@@ -131,6 +178,14 @@ public class Mechybois extends OpMode {
             lift.setPower(0);
         }
 
+        if(gamepad2.right_bumper || gamepad1.right_bumper){
+            hook.setPosition(1);
+        } else if (gamepad2.left_bumper || gamepad1.left_bumper){
+            hook.setPosition(0);
+        }
+        //endregion
+
+        //region collection
         if(gamepad2.left_trigger > 0.05 || gamepad2.right_trigger > 0.05){
             coll_arm.setPower(scaleInput(gamepad2.right_trigger) - scaleInput(gamepad2.left_trigger));
         } else {
@@ -148,15 +203,9 @@ public class Mechybois extends OpMode {
         } else if(gamepad2.b){
             coll.setPower(-1);
         } else { coll.setPower(0); }
+        //endregion
 
-        if(gamepad2.right_bumper || gamepad1.right_bumper){
-            hook.setPosition(1);
-        } else if (gamepad2.left_bumper || gamepad1.left_bumper){
-            hook.setPosition(0);
-        }
-
-
-        // Show the elapsed game time and wheel power.
+        //region telemetry
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("rb power", + rb.getPower());
         telemetry.addData("rf power", + rf.getPower());
@@ -170,6 +219,7 @@ public class Mechybois extends OpMode {
 
         //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         telemetry.update();
+        //endregion
     }
 
     @Override
@@ -184,4 +234,11 @@ public class Mechybois extends OpMode {
         return(out);
     }
 
+    /**
+     * @return the current gyro reading as an int from 0 to 360 degrees
+     */
+    int gg() {
+        int gyroAngle = (int)gyro.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+        return gyroAngle;
+    }
 }
