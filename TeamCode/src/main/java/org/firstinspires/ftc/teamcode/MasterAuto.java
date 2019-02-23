@@ -535,7 +535,16 @@ public class MasterAuto extends LinearOpMode {
             //endregion
         }
         halt();
-        while (opModeIsActive() && Math.abs(target - current) > tolerance*pwr + 5) {
+
+        sleep(300);
+
+        current = gg();
+
+        rf.setPower(-sign * pwr * 0.2);
+        rb.setPower(-sign * pwr * 0.2);
+        lf.setPower(sign * pwr * 0.2);
+        lb.setPower(sign * pwr * 0.2);
+        while (opModeIsActive() && Math.abs(target - current) > 5) {
             current = gg();
 
             //region telemetry

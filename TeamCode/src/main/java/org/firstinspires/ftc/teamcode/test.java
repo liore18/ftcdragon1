@@ -19,7 +19,7 @@ public class test extends MasterAuto {
 
         waitForStart();
 
-        turnAC_debug(90, 0.25);
+        turnAC(90, 0.25);
         sleep(1000);
         turnAC(-90, 0.25);
 
