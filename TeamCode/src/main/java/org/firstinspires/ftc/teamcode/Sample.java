@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name="Sample n' scramble", group="Autonomous")
+@Autonomous(name="Sample", group="Autonomous")
 public class Sample extends MasterAuto {
 
     static double INITIAL_D = 0.5;                          // after we drop, we move this far fwd

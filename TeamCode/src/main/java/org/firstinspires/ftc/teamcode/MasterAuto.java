@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -62,12 +63,10 @@ public class MasterAuto extends LinearOpMode {
     public TouchSensor touch = null;
     public TouchSensor touch2 = null;
 
-    public TouchSensor sidef = null;
-    public TouchSensor sideb = null;
+    public TouchSensor atouch = null;
 
     public DcMotor coll = null;
     public DcMotor coll_arm = null;
-    public DcMotor coll_lift = null;
 
     public Servo drop = null;
 
@@ -98,10 +97,8 @@ public class MasterAuto extends LinearOpMode {
         touch = hardwareMap.touchSensor.get("touch");
         touch2 = hardwareMap.touchSensor.get("touch2");             // get lift sensors
 
-        //sidef = hardwareMap.touchSensor.get("sidef");
-        //sideb = hardwareMap.touchSensor.get("sideb");             // get wall alignment sensors
+        atouch = hardwareMap.touchSensor.get("atouch");
 
-        coll_lift = hardwareMap.get(DcMotor.class, "coll_lift");
         coll_arm = hardwareMap.get(DcMotor.class, "coll_arm");
         coll = hardwareMap.get(DcMotor.class, "coll");  // get collection devices
 
@@ -345,7 +342,7 @@ public class MasterAuto extends LinearOpMode {
         halt();
     }
 
-    void dropmarker() {
+    void shakemarker() {
         drop.setPosition(1.0);
         sleep(250);
 
@@ -370,6 +367,13 @@ public class MasterAuto extends LinearOpMode {
         lb.setPower(1);
         sleep(150);
         halt();
+    }
+
+    void dropmarker() {
+        coll_arm.setPower(1);
+        sleep(1000);
+        coll_arm.setPower(-1);
+        sleep(1000);
     }
 
     void floparm() {
@@ -471,6 +475,9 @@ public class MasterAuto extends LinearOpMode {
             telemetry.addData("d", d);
             telemetry.addData("p", d * urgency);
 
+            telemetry.addData("tgt p", target);
+            telemetry.addData("max p", Math.max(Math.max(rf.getCurrentPosition(), lf.getCurrentPosition()), Math.max(rb.getCurrentPosition(), lb.getCurrentPosition())));
+
             telemetry.update();
             //endregion
         }
@@ -528,12 +535,26 @@ public class MasterAuto extends LinearOpMode {
             //endregion
         }
         halt();
+        while (opModeIsActive() && Math.abs(target - current) > tolerance*pwr + 5) {
+            current = gg();
+
+            //region telemetry
+
+            telemetry.addData("target", target);
+            telemetry.addData("current", current);
+            telemetry.addData("sign", sign);
+            telemetry.addData("delta", Math.abs(target - current));
+            telemetry.addData("tolerance", tolerance);
+
+
+            telemetry.update();
+            //endregion
+        }
+        halt();
     }
 
-    void turnAC2 (int angle, double pwr) {
+    void turnAC_debug (int angle, double pwr) {
         reset();
-
-        int initialangle = gg();
 
         if(angle == 0) {
             return;
@@ -544,6 +565,12 @@ public class MasterAuto extends LinearOpMode {
         int tolerance = 15;
 
         int target = gg() + angle;
+
+        if(target > 180)
+            target = target - 360;
+        if(target < -180)
+            target = target + 360;
+
         int current = gg();
 
         sleep(500);
@@ -563,11 +590,23 @@ public class MasterAuto extends LinearOpMode {
         while (opModeIsActive() && Math.abs(target - current) > tolerance*pwr + 5) {
             current = gg();
 
-            rf.setPower(sign * pwr * ( Math.abs(target - current) / angle) + .025);
-            rb.setPower(sign * pwr * ( Math.abs(target - current) / angle) + .025);
-            lf.setPower(-sign * pwr * ( Math.abs(target - current) / angle) + .025);
-            lb.setPower(-sign * pwr * ( Math.abs(target - current) / angle) + .025);
+            //region telemetry
 
+            telemetry.addData("target", target);
+            telemetry.addData("current", current);
+            telemetry.addData("sign", sign);
+            telemetry.addData("delta", Math.abs(target - current));
+            telemetry.addData("tolerance", tolerance);
+
+
+            telemetry.update();
+            //endregion
+        }
+
+        halt();
+
+        while (opModeIsActive()) {
+            current = gg();
 
             //region telemetry
 
@@ -576,6 +615,58 @@ public class MasterAuto extends LinearOpMode {
             telemetry.addData("sign", sign);
             telemetry.addData("delta", Math.abs(target - current));
             telemetry.addData("tolerance", tolerance);
+
+
+            telemetry.update();
+            //endregion
+        }
+    }
+
+    void turnACB (int angle, double pwr) {
+        reset();
+
+        if(angle == 0) {
+            return;
+        }
+
+        pwr = Math.abs(pwr);
+
+        int tolerance = 15;
+
+        int target = gg() + angle;
+
+        if(target > 180)
+            target = target - 360;
+        if(target < -180)
+            target = target + 360;
+
+        int current = gg();
+
+        sleep(500);
+
+        rf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        int sign = angle / Math.abs(angle);
+
+        rf.setPower(sign * pwr);
+        rb.setPower(sign * pwr);
+        lf.setPower(-sign * pwr);
+        lb.setPower(-sign * pwr);
+
+        while (opModeIsActive() && Math.abs(target - current) > tolerance*pwr + 5) {
+            current = gg();
+
+            //region telemetry
+
+            telemetry.addData("target", target);
+            telemetry.addData("current", current);
+            telemetry.addData("sign", sign);
+            telemetry.addData("delta", Math.abs(target - current));
+            telemetry.addData("tolerance", tolerance);
+
 
             telemetry.update();
             //endregion
@@ -715,7 +806,59 @@ public class MasterAuto extends LinearOpMode {
         rb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        while (opModeIsActive() && !(sidef.isPressed() && sideb.isPressed()) && runtime.seconds() < timeout) {
+        while (opModeIsActive() && !atouch.isPressed() && runtime.seconds() < timeout) {
+            current = gg();
+            float d = initial - current;
+
+            rf.setPower(pwr - d * urgency * pwr);
+            rb.setPower(pwr + d * urgency * pwr);
+            lf.setPower(pwr - d * urgency * pwr);
+            lb.setPower(pwr + d * urgency * pwr);
+
+            //region telemetry
+            /*telemetry.addData("rfpos", rf.getCurrentPosition());
+            telemetry.addData("rbpos", rb.getCurrentPosition());
+            telemetry.addData("lfpos", lf.getCurrentPosition());
+            telemetry.addData("lbpos", lb.getCurrentPosition());*/
+
+            telemetry.addData("R f pwr", rf.getPower());
+            telemetry.addData("R b pwr", rb.getPower());
+            telemetry.addData("L f pwr", lf.getPower());
+            telemetry.addData("L b pwr", lb.getPower());
+
+            telemetry.addData("d", d);
+            telemetry.addData("p", d * urgency);
+
+            telemetry.update();
+            //endregion
+        }
+        halt();
+        reset();
+    }
+
+    void alignWallAcc(int timeout) {
+        reset();
+        runtime.reset();
+
+        double pwr = -0.7;
+
+        float urgency = 0.15f; // remember that we may end up more than 10 degrees off course.
+
+        float initial = gg();
+        float current;
+
+        rf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        Acceleration a = gyro.getAcceleration();
+        float p = (float)Math.sqrt(Math.pow(a.xAccel,2) + Math.pow(a.yAccel,2) + Math.pow(a.zAccel,2));
+
+        while (opModeIsActive() && ((p < 10) || runtime.seconds() < 0.5) && runtime.seconds() < timeout) {
+            a = gyro.getAcceleration();
+            p = (float)Math.sqrt(Math.pow(a.xAccel,2) + Math.pow(a.yAccel,2) + Math.pow(a.zAccel,2));
+
             current = gg();
             float d = initial - current;
 

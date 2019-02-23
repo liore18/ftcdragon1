@@ -15,6 +15,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
+import static java.lang.Thread.sleep;
+
 /**
  * This file contains an example of an iterative (Non-Linear) "OpMode".
  * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
@@ -34,17 +36,19 @@ public class Mechybois extends OpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
 
-    private DcMotor lf = null;
+    private DcMotor lf = null;      // drivetrain
     private DcMotor rf = null;
     private DcMotor lb = null;
     private DcMotor rb = null;
 
-    private DcMotor coll = null;
-    private DcMotor coll_lift = null;
+    private DcMotor coll = null;    // intake
     private DcMotor coll_arm = null;
 
-    private DcMotor lift = null; // p2rs
+    private DcMotor lift = null;    // lift
     private Servo hook = null;
+
+    private DcMotor fly = null;     // shooter
+    private Servo gate = null;
 
     private TouchSensor touch = null;
     private TouchSensor touch2 = null;
@@ -55,7 +59,7 @@ public class Mechybois extends OpMode {
 
     boolean latchassist = false;
     int lockval = 0;
-    float urgency = 0.05f;
+    float urgency = 0.01f;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -77,18 +81,27 @@ public class Mechybois extends OpMode {
         lf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        lf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rb.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         coll_arm = hardwareMap.get(DcMotor.class, "coll_arm");
-        coll_lift = hardwareMap.get(DcMotor.class, "coll_lift");
         coll = hardwareMap.get(DcMotor.class, "coll");          // collection motor
 
         hook = hardwareMap.get(Servo.class, "hook");
         lift = hardwareMap.get(DcMotor.class, "lift");          // lift motor
 
+        fly = hardwareMap.get(DcMotor.class, "fly");
+        gate = hardwareMap.get(Servo.class, "gate");
+
         lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        fly.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         coll.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         coll_arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        coll_lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        coll_arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         touch = hardwareMap.touchSensor.get("touch");
         touch2 = hardwareMap.touchSensor.get("touch2");
@@ -118,6 +131,41 @@ public class Mechybois extends OpMode {
         runtime.reset();
     }
 
+
+    /* CONTROLS LIST
+
+    LATCH ASSIST
+    G1 left stick button        ON/RESET
+    G1 right stick button       OFF
+
+    DRIVE
+    G1 left stick y             STRAIGHT
+    G1 left stick x             STRAFE
+    G1 right stick x            ROTATE
+    G1 X                        SLOW
+
+    LIFT
+    G1|G2 dpad up               LIFT UP
+    G1|G2 dpad down             LIFT DOWN
+    G1|G2 right bumper          LATCH
+    G1|G2 left bumper           UNLATCH
+
+    COLLECTION
+    G2 right trigger            SWING OUT
+    G2 left trigger             SWING IN
+    G2 A                        COLLECT
+    G2 B                        EJECT
+
+    SHOOTER
+    G2 X                        FLYWHEEL TOGGLE
+    G2 Y                        GATE UP MOMENTARY
+
+     */
+
+    boolean xpressed = false;
+
+    boolean flywheel = false;
+
     @Override
     public void loop() {
 
@@ -132,7 +180,7 @@ public class Mechybois extends OpMode {
         float AC;
         float con;
         if(latchassist) {
-            if(!ltouch.isPressed()) con = -0.5f; else con = 0;
+            if(!ltouch.isPressed()) con = -0.12f; else con = 0;
             int current = gg();
             float d = lockval - current;
             AC = d * urgency;
@@ -187,22 +235,43 @@ public class Mechybois extends OpMode {
 
         //region collection
         if(gamepad2.left_trigger > 0.05 || gamepad2.right_trigger > 0.05){
-            coll_arm.setPower(scaleInput(gamepad2.right_trigger) - scaleInput(gamepad2.left_trigger));
+            coll_arm.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
         } else {
             coll_arm.setPower(0);
         }
 
-        if(gamepad2.x){
-            coll_lift.setPower(1);
-        } else if(gamepad2.y){
-            coll_lift.setPower(-1);
-        } else { coll_lift.setPower(0); }
-
         if(gamepad2.a){
-            coll.setPower(1);
+            coll.setPower(0.5);
         } else if(gamepad2.b){
-            coll.setPower(-1);
+            coll.setPower(-0.5);
         } else { coll.setPower(0); }
+        //endregion
+
+        //region shooter
+
+
+
+        if(gamepad2.y) {
+            gate.setPosition(0);
+        } else {
+            gate.setPosition(1);
+        }
+
+        if(gamepad2.x) {
+            if(!xpressed) {
+                flywheel = !flywheel;
+            }
+            xpressed = true;
+        } else {
+            xpressed = false;
+        }
+
+        if(flywheel) {
+            fly.setPower(1);
+        } else {
+            fly.setPower(0);
+        }
+
         //endregion
 
         //region telemetry
@@ -212,20 +281,52 @@ public class Mechybois extends OpMode {
         telemetry.addData("lf power", + lf.getPower());
         telemetry.addData("lb power", + lb.getPower());
 
-        telemetry.addData("rfpos", rf.getCurrentPosition());
-        telemetry.addData("rbpos", rb.getCurrentPosition());
-        telemetry.addData("lfpos", lf.getCurrentPosition());
-        telemetry.addData("lbpos", lb.getCurrentPosition());
+        telemetry.addData("rb pos", + rb.getCurrentPosition());
+        telemetry.addData("rf pos", + rf.getCurrentPosition());
+        telemetry.addData("lf pos", + lf.getCurrentPosition());
+        telemetry.addData("lb pos", + lb.getCurrentPosition());
+
+        telemetry.addData("touch", ltouch.isPressed());
 
         //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
         telemetry.update();
         //endregion
     }
 
+    public void shoot(double mult) {
+        double os = getRuntime();
+
+        while (fly.getPower() < 1.0) {
+            fly.setPower((getRuntime() - os) * mult);
+        }
+        for(int i = 0; i < 1000; i++)
+            fly.setPower(1);
+
+        fly.setPower(0);
+    }
+
+    public void collect() {
+        /*
+
+        when we press a button:
+            check where the arm is in its range of motion
+
+            if arm is up:
+                power motor until some point
+                turn on collection motor
+
+            if arm is down:
+
+
+
+
+         */
+    }
+
+
     @Override
     public void stop() {
     }
-
 
     float scaleInput(float in) {
         float out = in*in;

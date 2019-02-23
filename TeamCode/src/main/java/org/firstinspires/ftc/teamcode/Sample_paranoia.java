@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name="Sample Paranoia", group="Autonomous")
+@Autonomous(name="Sample UNLESS RIGHT", group="Autonomous")
 public class Sample_paranoia extends MasterAuto {
 
     static double INITIAL_D = 0.5;                          // after we drop, we move this far fwd

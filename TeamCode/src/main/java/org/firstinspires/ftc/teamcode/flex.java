@@ -43,8 +43,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
-@Autonomous(name="testing", group="Autonomous")
-public class testing extends MasterAuto {
+@Autonomous(name="flex", group="Autonomous")
+public class flex extends MasterAuto {
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -58,23 +58,9 @@ public class testing extends MasterAuto {
 
         waitForStart();
 
-        turnAC(-180,0.25);
-
-        dropmarker();
-
-        turnAC(30,.25);
-        turnAC(-30,.25);
+        driveAC(10,0.1);
 
         sleep(10000);
-
-        /*turnAC(90, 0.15);
-        sleep(1000);
-        turnAC(-90, .15);
-        sleep(1000);
-        turnAC(180, .15);
-        sleep(1000);
-        turnAC(-180, .15);
-        sleep(1000);*/
 
         halt();
     }
