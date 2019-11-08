@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
+@Disabled
 @Autonomous(name="Depot", group="Autonomous")       // this file super is not depot
 public class Depot extends MasterAuto {
 

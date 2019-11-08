@@ -4,12 +4,19 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.SwitchableLight;
+import android.app.Activity;
+import android.graphics.Color;
+import android.view.View;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -30,7 +37,7 @@ import static java.lang.Thread.sleep;
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
-
+@Disabled
 @TeleOp(name="Mecanum", group="TeleOp")
 public class Mechybois extends OpMode {
     // Declare OpMode members.
@@ -56,6 +63,9 @@ public class Mechybois extends OpMode {
     private TouchSensor ltouch = null;
 
     BNO055IMU gyro;
+
+    NormalizedColorSensor colorSensor;
+
 
     boolean latchassist = false;
     int lockval = 0;
@@ -97,6 +107,8 @@ public class Mechybois extends OpMode {
 
         lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         fly.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        colorSensor = hardwareMap.get(NormalizedColorSensor.class , "colorSensor");
 
 
         coll.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -253,9 +265,7 @@ public class Mechybois extends OpMode {
         final float values[] = hsvValues;
 
         // Get a reference to our sensor object.
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class , "colorSensor");
-
-        View relativeLayout;
+        final View relativeLayout;
 
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
@@ -325,7 +335,12 @@ public class Mechybois extends OpMode {
         // change the background color to match the color detected by the RGB sensor.
         // pass a reference to the hue, saturation, and value array as an argument
         // to the HSVToColor method.
-        relativeLayout.setBackgroundColor(Color.HSVToColor(0xff, values));
+        relativeLayout.post(new Runnable() {
+            public void run() {
+                relativeLayout.setBackgroundColor(Color.HSVToColor(0xff, values));
+            }
+        });
+
 
         //endregion
 
