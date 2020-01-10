@@ -40,10 +40,21 @@ public class Mechybois2020 extends OpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
 
-    private DcMotor lf = null;      // drivetrain
+    //drive
+    private DcMotor lf = null;
     private DcMotor rf = null;
     private DcMotor lb = null;
     private DcMotor rb = null;
+
+    //arm
+    private DcMotor extend = null;
+    private Servo grab = null;
+    private DcMotor rotateL = null;
+    private DcMotor rotateR = null;
+
+    //movePlatform
+    private Servo movePlat1 = null;
+    private Servo movePlat2 = null;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -54,6 +65,14 @@ public class Mechybois2020 extends OpMode {
         lb = hardwareMap.get(DcMotor.class, "lb");
         rf = hardwareMap.get(DcMotor.class, "rf");
         rb = hardwareMap.get(DcMotor.class, "rb");
+
+        extend = hardwareMap.get(DcMotor.class, "extend");
+        grab = hardwareMap.get(Servo.class, "grab");
+        rotateL = hardwareMap.get(DcMotor.class, "rotateL");
+        rotateR = hardwareMap.get(DcMotor.class, "rotateR");
+
+        movePlat1 = hardwareMap.get(Servo.class, "movePlat1");
+        movePlat2 = hardwareMap.get(Servo.class, "movePlat2");
 
         lf.setDirection(DcMotor.Direction.REVERSE);
         lb.setDirection(DcMotor.Direction.REVERSE);
@@ -95,8 +114,6 @@ public class Mechybois2020 extends OpMode {
 
      */
 
-    boolean xpressed = false;
-
     @Override
     public void loop() {
 
@@ -126,6 +143,50 @@ public class Mechybois2020 extends OpMode {
             rb.setPower(.2*Range.clip(drive + strafe - rotate, -1.0, 1.0));
         }
         //endregion
+
+        //arm
+
+        if((gamepad2.dpad_up || gamepad1.dpad_up)){         //up
+            extend.setPower(1);
+        } else if((gamepad2.dpad_down || gamepad1.dpad_down)){         //down
+            extend.setPower(-1);
+        } else {
+            extend.setPower(0);
+        }
+
+       if(gamepad2.left_bumper) {
+          grab.setPosition(0);
+        }
+       else if(gamepad2.right_bumper){
+             grab.setPosition(1);
+            
+        }
+
+        if(gamepad2.a){
+            rotateR.setPower(1);
+            rotateL.setPower(-1);
+
+        }else{
+            rotateR.setPower(0);
+            rotateR.setPower(0);
+        }
+
+        if(gamepad2.b){
+            rotateR.setPower(-.5);
+            rotateL.setPower(.5);
+        }else{
+            rotateR.setPower(0);
+            rotateL.setPower(0);
+        }
+
+        if(gamepad2.dpad_right){
+            movePlat1.setPosition(1);
+            movePlat2.setPosition(0);
+
+        }else if(gamepad2.dpad_left){
+            movePlat1.setPosition(0);
+            movePlat2.setPosition(1);
+        }
 
 
         //region telemetry

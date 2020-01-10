@@ -17,7 +17,7 @@ import java.util.List;
 
 @Disabled
 @Autonomous(name="Crater", group="Autonomous")
-public class Crater extends MasterAuto {
+public class Crater extends MasterAuto2020 {
 
     static double INITIAL_D = 0.5;                          // after we drop, we move this far fwd
 
